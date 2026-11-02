@@ -97,10 +97,10 @@ jobs:
       - name: Créer le projet Android
         run: npx cap add android
 
-      - name: Icônes + permission caméra
+      - name: Icônes + permissions (caméra, photos, vidéos)
         run: |
           cp -r src-tauri/icons/android/* android/app/src/main/res/
-          sed -i 's#</manifest>#    <uses-permission android:name="android.permission.CAMERA" />\n</manifest>#' android/app/src/main/AndroidManifest.xml
+          sed -i 's#</manifest>#    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />\n    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />\n</manifest>#' android/app/src/main/AndroidManifest.xml
           npx cap sync android
 
       - name: Compiler l'APK

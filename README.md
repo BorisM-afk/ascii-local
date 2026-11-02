@@ -27,6 +27,20 @@ Windows · macOS · Android · Web (iPhone)
 - Déformations (tourbillon, sphère, ondulation…), flous (tilt‑shift, mouvement…), bloom, scanlines, aberration chromatique, glitch, grain, vignette.
 - **41 recettes** en un clic, comparaison avant/après, export PNG jusqu'à ×4, texte ASCII copiable.
 
+## Sur téléphone
+
+L'interface mobile reprend les gestes de Lightroom, Snapseed et VSCO :
+
+| Geste | Action |
+|---|---|
+| **Toucher l'image** | masquer / afficher les outils (plein écran) |
+| **Appui long sur l'image** | voir l'original |
+| **Glisser ← → sur l'image** | régler le paramètre choisi (ou changer de style / de recette) |
+| **Glisser ↑ ↓ sur l'image** | passer au réglage précédent / suivant |
+| **Curseur** | suit le doigt sans sauter ; **−/+** pour le pas fin ; **double‑toucher** pour réinitialiser |
+
+**Importer** ouvre la galerie photos, les vidéos, l'appareil photo, la caméra en direct ou les fichiers. Dans l'appli Android, l'accès aux photos et vidéos est demandé par la fenêtre d'autorisation du système.
+
 ## Confidentialité
 
 Tout tient dans un seul fichier, [`src/index.html`](src/index.html), sans aucune bibliothèque externe.
