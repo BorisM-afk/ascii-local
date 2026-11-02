@@ -59,7 +59,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 /* ---------- Scène ---------- */
 .stage{position:relative;min-height:0;min-width:0;background:radial-gradient(ellipse at 50% 35%,#17171e 0%,var(--bg) 70%);overflow:hidden}
 .canvas-wrap{position:absolute;inset:28px 28px 96px;display:grid;place-items:center}
-#view{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 24px 70px #000d,0 0 0 1px #ffffff12;background:repeating-conic-gradient(#1d1d24 0 25%,#15151a 0 50%) 0 0/18px 18px}
+#view{display:block;border-radius:10px;box-shadow:0 24px 70px #000d,0 0 0 1px #ffffff12;background:repeating-conic-gradient(#1d1d24 0 25%,#15151a 0 50%) 0 0/18px 18px}
 .dock{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:2px;padding:6px;border-radius:18px;background:#18181fe8;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line2);box-shadow:0 12px 34px #0009;z-index:3}
 .ib{width:44px;height:44px;border-radius:12px;border:0;background:transparent;display:grid;place-items:center;cursor:pointer;color:var(--txt);transition:background .15s}
 .ib:hover{background:#ffffff12}
@@ -73,7 +73,7 @@ body.dragging #drop{display:flex}
 
 /* ---------- Panneau ---------- */
 .panel{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
-.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:10px;border-bottom:1px solid var(--line)}
+.tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:10px;border-bottom:1px solid var(--line)}
 .tab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 7px;border-radius:11px;border:0;background:transparent;color:var(--mute);font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
 .tab svg{width:21px;height:21px}
 .tab:hover{color:var(--txt)}
@@ -146,6 +146,21 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border:0;border-radiu
 textarea.ta{width:100%;min-height:72px;border-radius:10px;border:1px solid var(--line2);background:var(--card);padding:10px 12px;outline:none;resize:vertical;font:600 15px var(--mono);color:var(--txt)}
 textarea.ta:focus{border-color:var(--acc)}
 .labo-badge{font:700 10px var(--mono);letter-spacing:.1em;color:#0b0f00;background:#ff9e5e;padding:3px 7px;border-radius:6px}
+.rng{display:flex;align-items:center;gap:8px}
+.rng input[type=range]{flex:1}
+.rbtn{width:30px;height:30px;flex:none;border-radius:9px;border:1px solid var(--line2);background:var(--card);font-size:17px;line-height:1;display:grid;place-items:center;cursor:pointer;user-select:none;touch-action:none}
+.rbtn:hover{border-color:#4b4b58;background:var(--card2)}
+.rbtn:active{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.field output{cursor:text}
+.field output:hover{border-color:var(--acc)}
+.out-edit{width:64px;height:24px;border-radius:6px;border:1px solid var(--acc);background:var(--card);color:var(--txt);font:500 12px var(--mono);text-align:center;padding:0 4px}
+.stepbar{display:flex;align-items:center;gap:8px;margin:14px 2px 2px;font-size:12px;color:var(--mute)}
+.stepbar .seg{display:inline-flex;background:var(--card);border:1px solid var(--line2);border-radius:9px;padding:2px;gap:2px}
+.stepbar .seg button{border:0;background:transparent;color:var(--mute);font:600 12px var(--mono);padding:4px 10px;border-radius:7px;cursor:pointer}
+.stepbar .seg button.on{background:var(--acc);color:var(--acc-ink)}
+.m-steps{display:inline-flex;gap:4px;margin-left:auto}
+.m-steps button{border:1px solid var(--line2);background:var(--card);color:var(--mute);font:600 11px var(--mono);padding:3px 8px;border-radius:7px}
+.m-steps button.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
 #toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,10px);background:#1f1f27;border:1px solid var(--line2);padding:10px 16px;border-radius:12px;opacity:0;transition:.2s;pointer-events:none;max-width:min(92vw,380px);z-index:50;box-shadow:0 10px 30px #000a;font-size:13.5px;text-align:center}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 .desk-only{}
@@ -278,6 +293,7 @@ input[type=range]{touch-action:pan-y} /* un défilement vertical ne fait jamais 
       <button class="tab active" data-tab="styles"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>Styles</button>
       <button class="tab" data-tab="adjust"><svg viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>Réglages</button>
       <button class="tab" data-tab="fx"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 4.9L19 9.5l-5.1 1.7L12 16l-1.9-4.8L5 9.5l5.1-1.6zM19 15l.8 2.1 2.2.9-2.2.8L19 21l-.8-2.2-2.2-.8 2.2-.9z"/></svg>Effets</button>
+      <button class="tab" data-tab="anim"><svg viewBox="0 0 24 24"><path d="M4 12c2-5 4-5 6 0s4 5 6 0 3-3 4-2"/><path d="M4 18c2-3 4-3 6 0s4 3 6 0" opacity=".5"/><path d="M4 6c2-3 4-3 6 0s4 3 6 0" opacity=".5"/></svg>Animer</button>
       <button class="tab" data-tab="create"><svg viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/><circle cx="12" cy="12" r="2.5"/></svg>Créer</button>
       <button class="tab" data-tab="export"><svg viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg>Export</button>
     </nav>
@@ -503,6 +519,30 @@ input[type=range]{touch-action:pan-y} /* un défilement vertical ne fait jamais 
     </section>
 
     <!-- ===== Export ===== -->
+    <section class="pane" data-pane="anim" hidden>
+      <div style="height:6px"></div>
+      <button class="btn primary block" id="animToggle" style="margin-top:12px"><svg viewBox="0 0 24 24"><path d="M4 12c2-5 4-5 6 0s4 5 6 0 3-3 4-2"/><path d="M4 18c2-3 4-3 6 0s4 3 6 0" opacity=".5"/><path d="M4 6c2-3 4-3 6 0s4 3 6 0" opacity=".5"/></svg>Lancer l'aperçu animé</button>
+      <div class="h">Animation · GIF</div>
+      <div class="hint" style="margin-top:0">Anime ta photo en boucle avec des effets en mouvement (traînées, lignes qui coulent, scintillement, glitch…). </div>
+      <div class="row">
+        <label class="field"><span>Durée</span>
+          <select data-k="animDur" data-num><option value="1.5">1,5 s</option><option value="2">2 s</option><option value="3">3 s</option><option value="4">4 s</option><option value="6">6 s</option></select>
+        </label>
+        <label class="field"><span>Images / seconde</span>
+          <select data-k="animFps" data-num><option value="10">10</option><option value="12">12</option><option value="15">15</option><option value="20">20</option><option value="24">24</option></select>
+        </label>
+      </div>
+      <label class="field"><span>Vitesse du mouvement <output></output></span><input type="range" data-k="animSpeed" min="1" max="4" step="1"></label>
+      <label class="field"><span>Intensité du mouvement <output></output></span><input type="range" data-k="animAmt" min="0" max="100"></label>
+      <label class="field"><span>Largeur du GIF</span>
+        <select data-k="gifWidth" data-num><option value="320">320 px (léger)</option><option value="480">480 px</option><option value="640">640 px</option><option value="800">800 px (lourd)</option></select>
+      </label>
+      <div class="stack">
+        <button class="btn primary block" id="gifBtn"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 12h2v2H8v-4h2M13 10v4M16 14v-4h2M16 12h1.5"/></svg>Exporter en GIF</button>
+        <button class="btn block" id="loopBtn"><svg viewBox="0 0 24 24"><path d="M15 10l5-3v10l-5-3z"/><rect x="3" y="6" width="12" height="12" rx="2"/></svg>Exporter en vidéo (boucle MP4/WebM)</button>
+      </div>
+      <div class="hint">Avec une vidéo importée, l'animation reprend ses premières secondes.</div>
+    </section>
     <section class="pane" data-pane="create" hidden id="createPane">
       <div class="h">Source</div>
       <div class="chips wrap" id="srcChips">
@@ -563,26 +603,6 @@ input[type=range]{touch-action:pan-y} /* un défilement vertical ne fait jamais 
         <button class="btn" id="txtBtn"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M9 13h6M9 17h4"/></svg>Fichier .txt</button>
       </div>
       <div class="hint">Disponible pour les styles ASCII, Blocs et Braille.</div>
-      <div class="h">Animation · GIF</div>
-      <div class="hint" style="margin-top:0">Anime ta photo en boucle avec des effets en mouvement (traînées, lignes qui coulent, scintillement, glitch…). Clique sur <b>〰</b> sous l'image pour l'aperçu.</div>
-      <div class="row">
-        <label class="field"><span>Durée</span>
-          <select data-k="animDur" data-num><option value="1.5">1,5 s</option><option value="2">2 s</option><option value="3">3 s</option><option value="4">4 s</option><option value="6">6 s</option></select>
-        </label>
-        <label class="field"><span>Images / seconde</span>
-          <select data-k="animFps" data-num><option value="10">10</option><option value="12">12</option><option value="15">15</option><option value="20">20</option><option value="24">24</option></select>
-        </label>
-      </div>
-      <label class="field"><span>Vitesse du mouvement <output></output></span><input type="range" data-k="animSpeed" min="1" max="4" step="1"></label>
-      <label class="field"><span>Intensité du mouvement <output></output></span><input type="range" data-k="animAmt" min="0" max="100"></label>
-      <label class="field"><span>Largeur du GIF</span>
-        <select data-k="gifWidth" data-num><option value="320">320 px (léger)</option><option value="480">480 px</option><option value="640">640 px</option><option value="800">800 px (lourd)</option></select>
-      </label>
-      <div class="stack">
-        <button class="btn primary block" id="gifBtn"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 12h2v2H8v-4h2M13 10v4M16 14v-4h2M16 12h1.5"/></svg>Exporter en GIF</button>
-        <button class="btn block" id="loopBtn"><svg viewBox="0 0 24 24"><path d="M15 10l5-3v10l-5-3z"/><rect x="3" y="6" width="12" height="12" rx="2"/></svg>Exporter en vidéo (boucle MP4/WebM)</button>
-      </div>
-      <div class="hint">Avec une vidéo importée, l'animation reprend ses premières secondes.</div>
       <div class="h">Vidéo</div>
       <button class="btn block" id="recBtn2" disabled><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" fill="#ff4d5e" stroke="none"/></svg>Enregistrer la vidéo stylisée</button>
       <div class="hint">Importe une vidéo : l'enregistrement couvre toute sa durée (sans le son).</div>
@@ -1424,6 +1444,16 @@ function post(o, W, H, sc, seed){
 
 /* ---------- Rendu ---------- */
 const isPlayingVideo = () => src instanceof HTMLVideoElement && !src.paused;
+// Affiche toujours l'image ENTIÈRE dans la zone disponible, quel que soit son format
+const viewBox = document.querySelector('.canvas-wrap');
+function fitView(){
+  const r = viewBox.getBoundingClientRect();
+  if (!r.width || !r.height || !view.width || !view.height) return;
+  const a = view.width/view.height; let w = r.width, h = w/a;
+  if (h > r.height){ h = r.height; w = h*a; }
+  view.style.width = Math.floor(w) + 'px'; view.style.height = Math.floor(h) + 'px';
+}
+new ResizeObserver(fitView).observe(viewBox);
 function render(target = view, scale = 1){
   if (!src) return;
   const sw = srcW(), sh = srcH(); if (!sw || !sh) return;
@@ -1448,9 +1478,25 @@ function render(target = view, scale = 1){
   o.restore();
   post(o, W, H, scale, ANIM.on ? S.seed + ANIM.frame*7919 : isPlayingVideo() ? (Math.random()*1e9)|0 : S.seed);
   $('#copyBtn').disabled = $('#txtBtn').disabled = lastText === null;
+  if (target === view) fitView();
 }
 let pending = false;
-function schedule(){ if (pending) return; pending = true; requestAnimationFrame(() => { pending = false; render(); }); }
+let fullT = 0;
+function schedule(){
+  if (pending) return; pending = true;
+  requestAnimationFrame(() => {
+    pending = false;
+    const live = (src && src.isLive) || isPlayingVideo() || (typeof ANIM !== 'undefined' && ANIM.on);
+    if (!live){
+      // aperçu rapide pendant le réglage : moins de pixels et, pour les styles à caractères/formes,
+      // des cases 2x plus grandes (4x moins à dessiner). Le rendu complet suit dès qu'on s'arrête.
+      const heavy = STYLES[S.style] === textStyle || STYLES[S.style] === shapeStyle || STYLES[S.style] === hexStyle;
+      const keep = S.cell; if (heavy) S.cell = Math.min(80, keep*2);
+      try { render(view, Math.min(1, Math.max(.3, 700/S.outWidth))); } finally { S.cell = keep; }
+      clearTimeout(fullT); fullT = setTimeout(() => render(), 170);   // qualité complète dès qu'on s'arrête
+    } else render();
+  });
+}
 let looping = false, comparing = false;
 function loop(){
   if (!(src instanceof HTMLVideoElement)){ looping = false; return; }
@@ -1459,6 +1505,53 @@ function loop(){
 }
 
 /* ---------- Icônes ---------- */
+/* ---------- Boutons − / + sur chaque curseur, pas ×1 / ×5 / ×10, saisie directe ---------- */
+var STEP = 1;
+try { STEP = +localStorage.getItem('al-step') || 1; } catch {}
+function setStep(n){ STEP = n; try { localStorage.setItem('al-step', n); } catch {} document.querySelectorAll('.stepbar .seg button').forEach(b => b.classList.toggle('on', +b.dataset.s === n)); }
+function nudge(el, dir){
+  const st = (+el.step || 1)*STEP, v = Math.min(+el.max, Math.max(+el.min, Math.round((+el.value + dir*st)/(+el.step || 1))*(+el.step || 1)));
+  if (String(v) === el.value) return;
+  el.value = v; el.dispatchEvent(new Event('input'));
+}
+document.querySelectorAll('.panel input[type=range]').forEach(el => {
+  const box = document.createElement('div'); box.className = 'rng';
+  el.parentNode.insertBefore(box, el);
+  const mk = (d, txt) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'rbtn'; b.textContent = txt; b.title = d < 0 ? 'Diminuer' : 'Augmenter';
+    let del = 0, rep = 0; const stop = () => { clearTimeout(del); clearInterval(rep); };
+    b.addEventListener('pointerdown', e => { e.preventDefault(); nudge(el, d); del = setTimeout(() => { rep = setInterval(() => nudge(el, d), 90); }, 400); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, stop));
+    b.addEventListener('click', e => e.preventDefault());
+    return b; };
+  box.append(mk(-1, '−'), el, mk(1, '+'));
+  // cliquer sur la valeur pour la taper au clavier
+  const out = el.closest('label').querySelector('output');
+  if (out) out.title = 'Cliquer pour saisir une valeur', out.addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    const inp = document.createElement('input'); inp.type = 'number'; inp.className = 'out-edit'; inp.min = el.min; inp.max = el.max; inp.step = el.step || 1; inp.value = el.value;
+    out.replaceWith(inp); inp.focus(); inp.select();
+    let fin = false;
+    const done = ok => { if (fin) return; fin = true; if (ok && inp.value !== ''){ el.value = Math.min(+el.max, Math.max(+el.min, +inp.value)); el.dispatchEvent(new Event('input')); } inp.replaceWith(out); out.textContent = el.value; };
+    inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') done(true); if (ev.key === 'Escape') done(false); });
+    inp.addEventListener('blur', () => inp.isConnected && done(true));
+  });
+});
+// sélecteur de pas en haut des onglets Réglages et Effets
+document.querySelectorAll('.pane[data-pane=adjust], .pane[data-pane=fx]').forEach(p => {
+  const bar = document.createElement('div'); bar.className = 'stepbar';
+  bar.innerHTML = 'Pas des boutons − / + <span class="seg"><button data-s="1">×1</button><button data-s="5">×5</button><button data-s="10">×10</button></span>';
+  bar.querySelectorAll('button').forEach(b => b.onclick = () => setStep(+b.dataset.s));
+  p.insertBefore(bar, p.firstChild);
+});
+setStep(STEP);
+// raccourcis clavier : flèches = ±pas sur le curseur actif (Maj = ×10)
+document.addEventListener('keydown', e => {
+  const el = document.activeElement;
+  if (!el || el.type !== 'range' || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+  e.preventDefault(); const d = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1 : -1;
+  const keep = STEP; if (e.shiftKey) STEP = 10; nudge(el, d); STEP = keep;
+});
+
 const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z" fill="currentColor"/></svg>';
 const ICON_PAUSE = '<svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" fill="currentColor"/></svg>';
 const setPlayIcon = paused => { $('#playBtn').innerHTML = paused ? ICON_PLAY : ICON_PAUSE; };
@@ -1537,6 +1630,7 @@ function animTick(now){
 }
 function setAnim(on){
   ANIM.on = on; $('#animBtn').classList.toggle('on', on);
+  const tg = $('#animToggle'); if (tg) tg.lastChild.textContent = on ? "Arrêter l'aperçu animé" : "Lancer l'aperçu animé";
   if (on){ animLast = 0; animRAF = requestAnimationFrame(animTick); }
   else { cancelAnimationFrame(animRAF); ANIM.phase = 0; ANIM.frame = 0; schedule(); }
 }
@@ -1836,7 +1930,7 @@ function syncUI(){
   document.querySelectorAll('[data-k]').forEach(el => {
     const v = S[el.dataset.k];
     if (el.type === 'checkbox') el.checked = !!v; else el.value = v;
-    const out = el.parentElement.querySelector('output'); if (out) out.textContent = v;
+    const out = (el.closest('label') || el.parentElement).querySelector('output'); if (out) out.textContent = v;
     fill(el);
   });
   updateVis();
@@ -1845,7 +1939,7 @@ document.querySelectorAll('[data-k]').forEach(el => {
   el.addEventListener('input', () => {
     const k = el.dataset.k;
     S[k] = el.type === 'checkbox' ? el.checked : (el.type === 'range' || 'num' in el.dataset) ? +el.value : el.value;
-    const out = el.parentElement.querySelector('output'); if (out) out.textContent = S[k];
+    const out = (el.closest('label') || el.parentElement).querySelector('output'); if (out) out.textContent = S[k];
     fill(el); updateVis(); schedule();
   });
 });
@@ -1883,6 +1977,7 @@ if (navigator.canShare && navigator.canShare({files:[new File([''], 'x.png', {ty
 }
 $('#copyBtn').onclick = copyText;
 $('#animBtn').onclick = () => setAnim(!ANIM.on);
+$('#animToggle').onclick = () => setAnim(!ANIM.on);
 $('#gifBtn').onclick = exportGIF;
 $('#loopBtn').onclick = exportLoopVideo;
 if (CAP){ $('#shareBtn').hidden = false; $('#shareBtn').onclick = sharePNG; $('#exportTop').onclick = exportPNG; }
@@ -2026,7 +2121,8 @@ function renderEditor(){
   const k = M.key, el = k && inputOf(k);
   if (!el){ ed.innerHTML = '<div class="hint">Choisis un réglage ci-dessous.</div>'; return; }
   const t = typeOf(el), hasDef = k in DEFAULTS;
-  ed.innerHTML = `<div class="m-ed-head"><span class="m-ed-label">${esc(labelOf(el))}</span><span class="m-ed-val"></span>${hasDef ? '<button class="m-reset">Réinitialiser</button>' : ''}</div><div class="m-ed-body"></div>`;
+  ed.innerHTML = `<div class="m-ed-head"><span class="m-ed-label">${esc(labelOf(el))}</span><span class="m-ed-val"></span>${t === 'range' ? '<span class="m-steps"><button data-s="1">×1</button><button data-s="5">×5</button><button data-s="10">×10</button></span>' : ''}${hasDef ? '<button class="m-reset" style="margin-left:8px">↺</button>' : ''}</div><div class="m-ed-body"></div>`;
+  ed.querySelectorAll('.m-steps button').forEach(b => { b.classList.toggle('on', +b.dataset.s === STEP); b.onclick = () => { setStep(+b.dataset.s); ed.querySelectorAll('.m-steps button').forEach(x => x.classList.toggle('on', x === b)); }; });
   const valEl = ed.querySelector('.m-ed-val'), body = ed.querySelector('.m-ed-body');
   const reset = () => { setParam(k, DEFAULTS[k]); renderEditor(); hud(labelOf(el) + ' ↺'); vib(10); };
   if (hasDef) ed.querySelector('.m-reset').onclick = reset;
@@ -2060,7 +2156,7 @@ function renderEditor(){
     });
     body.querySelectorAll('.m-step').forEach(b => {
       let rep = 0, del = 0;
-      const tick = () => { setParam(k, clamp(+el.value + (+b.dataset.d)*step)); paint(); };
+      const tick = () => { setParam(k, clamp(+el.value + (+b.dataset.d)*step*STEP)); paint(); };
       const stop = () => { clearTimeout(del); clearInterval(rep); };
       b.addEventListener('pointerdown', e => { e.preventDefault(); tick(); vib(5); del = setTimeout(() => { rep = setInterval(tick, 70); }, 380); });
       ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, stop));
