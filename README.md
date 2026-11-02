@@ -110,7 +110,7 @@ capacitor.config.json          emballage Android avec Capacitor
 
 Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
 
-Les installateurs Windows sont construits par GitHub Actions puis signés via SignPath. Détails, rôles de l'équipe et politique de confidentialité : [CODE_SIGNING.md](CODE_SIGNING.md).
+Les installateurs Windows sont construits par GitHub Actions. La signature du code via SignPath est en cours de mise en place : en attendant, ils ne sont pas encore signés. Détails, rôles de l'équipe et politique de confidentialité : [CODE_SIGNING.md](CODE_SIGNING.md).
 
 ## Contribuer
 
