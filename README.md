@@ -59,7 +59,8 @@ Télécharge la dernière version dans **[Releases](../../releases/latest)**.
 | **Mac M1/M2/M3/M4** | `ASCII Local_x.x.x_aarch64.dmg` | Glisse l'appli dans *Applications*, puis **clic droit › Ouvrir** la première fois. Si macOS dit que l'appli est endommagée : `xattr -cr "/Applications/ASCII Local.app"` dans le Terminal. |
 | **Mac Intel** | `ASCII Local_x.x.x_x64.dmg` | Pareil. |
 | **Android** | `ASCII-Local.apk` | Ouvre le fichier sur ton téléphone et autorise l'installation d'applications inconnues. Les exports vont dans *Documents › ASCII Local*. |
-| **iPhone / web** | lien GitHub Pages | Ouvre le lien dans Safari › Partager › *Sur l'écran d'accueil*. |
+| **iPhone (simple)** | https://borism-afk.github.io/ascii-local/ | Ouvre le lien dans **Safari** › bouton Partager › *Sur l'écran d'accueil*. L'appli s'installe avec son icône et marche **hors connexion**. |
+| **iPhone (app)** | `ASCII-Local-iPhone.ipa` | Non signée : à installer avec [AltStore](https://altstore.io) ou [Sideloadly](https://sideloadly.io) et un identifiant Apple gratuit (à renouveler tous les 7 jours). L'App Store demande le programme développeur Apple (99 €/an). |
 
 > Les avertissements Windows/macOS sont normaux : l'appli n'est pas signée avec un certificat payant (Apple : 99 $/an, Windows : ~200 €/an).
 
