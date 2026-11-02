@@ -65,15 +65,9 @@ Télécharge la dernière version dans **[Releases](../../releases/latest)**.
 
 ## Publier une nouvelle version
 
-Les installateurs sont construits automatiquement par **GitHub Actions** :
+Les installateurs sont construits automatiquement par **GitHub Actions** à chaque push sur `main` : en ~15 minutes, la Release de la version en cours est créée (ou mise à jour) avec les fichiers Windows, Mac et Android.
 
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-En ~15 minutes, une Release apparaît avec les fichiers Windows, Mac et Android.
-Sans tag, tu peux aussi lancer le workflow à la main (onglet *Actions* › *Build & Release* › *Run workflow*) : les fichiers sont alors dans *Artifacts*.
+Pour publier une **nouvelle version**, change `"version"` dans `src-tauri/tauri.conf.json` (et `package.json`), puis pousse : le tag `vX.Y.Z` et la Release sont créés tout seuls.
 
 **Version web** : *Settings* › *Pages* › Source : **GitHub Actions** (une seule fois). Elle sera en ligne sur `https://<ton-pseudo>.github.io/ascii-local/`.
 
