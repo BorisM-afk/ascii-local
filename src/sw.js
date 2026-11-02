@@ -1,7 +1,7 @@
 // Service worker : garde une copie de l'application pour qu'elle marche SANS connexion
 // une fois installée sur l'écran d'accueil. Il ne met en cache que les fichiers de l'appli
 // (jamais tes photos, qui ne quittent pas ton téléphone).
-const CACHE = 'ascii-local-v1';
+const CACHE = 'ascii-local-v1-2';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/icon-maskable-512.png'];
 
 self.addEventListener('install', e => {

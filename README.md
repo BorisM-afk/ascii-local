@@ -19,12 +19,14 @@ Windows · macOS · Android · Web (iPhone)
 
 ## Ce que ça fait
 
-- **43 styles** : ASCII (18 jeux de caractères), blocs, braille, pixel art, mosaïque, hexagones, LEGO, voxel, LED, dither (Game Boy, PICO‑8, C64, Mac 1984…), halftone, gravure, pointillisme, Warhol, duotone, thermique, pixel sort, anaglyphe 3D, kaléidoscope, **16 effets de verre** (WebGL)…
+- **44 styles** : ASCII (18 jeux de caractères), blocs, braille, pixel art, mosaïque, hexagones, LEGO, voxel, LED, dither (Game Boy, PICO‑8, C64, Mac 1984…), halftone, gravure, pointillisme, Warhol, duotone, thermique, pixel sort, anaglyphe 3D, kaléidoscope, **16 effets de verre** (WebGL)…
 - **Glitch machine** : traînées lumineuses directionnelles + lignes de contour qui « coulent ».
 - **Matrice pop** : LED carrées tramées sur palette acide.
 - **Animation de photo** : un clic sur 〰 et la photo s'anime en boucle parfaite → export **GIF** ou **vidéo MP4/WebM**.
 - **Vidéos et caméra** : les effets s'appliquent en direct, export de la vidéo stylisée.
 - Déformations (tourbillon, sphère, ondulation…), flous (tilt‑shift, mouvement…), bloom, scanlines, aberration chromatique, glitch, grain, vignette.
+- **Créer** : 12 moteurs génératifs (donut 3D, cube, sphère, nœud, pyramide, Matrix, plasma, jeu de la vie, feu, flux, étoiles, tunnel), mode **texte** (remplissages 3D, Matrix, plasma…), 15 **looks animés** en shaders (aurore, fumée, mercure, or liquide, cymatique, Escher, encre, terrazzo, néon…), **fonte** et **feu** sur ta photo, et un **fluide interactif** qui remue ta photo sous ton doigt — le tout passe ensuite dans n'importe quel style.
+- Réaction au curseur, export **ANSI** (terminal couleur), bannière **Markdown**, lien de réglages partageable.
 - **41 recettes** en un clic, comparaison avant/après, export PNG jusqu'à ×4, texte ASCII copiable.
 
 ## Sur téléphone

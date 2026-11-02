@@ -73,7 +73,7 @@ body.dragging #drop{display:flex}
 
 /* ---------- Panneau ---------- */
 .panel{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
-.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px;border-bottom:1px solid var(--line)}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:10px;border-bottom:1px solid var(--line)}
 .tab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 7px;border-radius:11px;border:0;background:transparent;color:var(--mute);font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
 .tab svg{width:21px;height:21px}
 .tab:hover{color:var(--txt)}
@@ -143,6 +143,9 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border:0;border-radiu
 .privacy svg{width:22px;height:22px;color:var(--acc);margin-top:1px}
 .privacy b{color:var(--txt)}
 
+textarea.ta{width:100%;min-height:72px;border-radius:10px;border:1px solid var(--line2);background:var(--card);padding:10px 12px;outline:none;resize:vertical;font:600 15px var(--mono);color:var(--txt)}
+textarea.ta:focus{border-color:var(--acc)}
+.labo-badge{font:700 10px var(--mono);letter-spacing:.1em;color:#0b0f00;background:#ff9e5e;padding:3px 7px;border-radius:6px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,10px);background:#1f1f27;border:1px solid var(--line2);padding:10px 16px;border-radius:12px;opacity:0;transition:.2s;pointer-events:none;max-width:min(92vw,380px);z-index:50;box-shadow:0 10px 30px #000a;font-size:13.5px;text-align:center}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 .desk-only{}
@@ -169,7 +172,7 @@ input[type=range]{touch-action:pan-y} /* un défilement vertical ne fait jamais 
   body.m-hidden .top{transform:translateY(-100%);opacity:0;pointer-events:none}
   body.m-hidden .canvas-wrap{inset:env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0}
   body.m-hidden #view{border-radius:0;box-shadow:none}
-  .m-tools{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:6px 6px calc(6px + env(safe-area-inset-bottom));border-top:1px solid var(--line);margin-top:6px}
+  .m-tools{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:6px 6px calc(6px + env(safe-area-inset-bottom));border-top:1px solid var(--line);margin-top:6px}
   .m-tool{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border:0;background:none;color:var(--mute);font-size:10.5px;font-weight:650;border-radius:10px}
   .m-tool svg{width:22px;height:22px}
   .m-tool.active{color:var(--txt)} .m-tool.active svg{color:var(--acc)}
@@ -218,6 +221,9 @@ input[type=range]{touch-action:pan-y} /* un défilement vertical ne fait jamais 
   .m-hint{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:35;background:#000a;color:#fffc;font-size:12px;padding:7px 12px;border-radius:99px;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
   body.m-hidden .m-hint.on{opacity:1}
   #toast{bottom:calc(var(--sheetH,230px) + 14px)}
+  .m-create{max-height:44vh;overflow-y:auto;padding:0 14px 6px;touch-action:pan-y}
+  .m-create .pane{padding:0;overflow:visible}
+  .m-create .chips.wrap{margin:0}
   .m-import{position:fixed;inset:0;z-index:60;background:#000a;display:flex;align-items:flex-end;animation:fadeIn .15s}
   .m-import-card{width:100%;background:#141419;border-radius:22px 22px 0 0;border-top:1px solid var(--line2);padding:14px 12px calc(14px + env(safe-area-inset-bottom));display:grid;gap:6px;animation:slideUp .22s ease}
   .m-import-title{font-weight:700;font-size:16px;padding:2px 6px 8px}
@@ -272,6 +278,7 @@ input[type=range]{touch-action:pan-y} /* un défilement vertical ne fait jamais 
       <button class="tab active" data-tab="styles"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>Styles</button>
       <button class="tab" data-tab="adjust"><svg viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>Réglages</button>
       <button class="tab" data-tab="fx"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 4.9L19 9.5l-5.1 1.7L12 16l-1.9-4.8L5 9.5l5.1-1.6zM19 15l.8 2.1 2.2.9-2.2.8L19 21l-.8-2.2-2.2-.8 2.2-.9z"/></svg>Effets</button>
+      <button class="tab" data-tab="create"><svg viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/><circle cx="12" cy="12" r="2.5"/></svg>Créer</button>
       <button class="tab" data-tab="export"><svg viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg>Export</button>
     </nav>
 
@@ -367,6 +374,7 @@ input[type=range]{touch-action:pan-y} /* un défilement vertical ne fait jamais 
               <option value="mono">Monochrome (encre)</option>
               <option value="gradient">Dégradé fond → encre</option>
               <option value="palette">Palette</option>
+              <option value="gradmap">Palette en dégradé</option>
             </select>
           </label>
           <div class="row">
@@ -383,6 +391,13 @@ input[type=range]{touch-action:pan-y} /* un défilement vertical ne fait jamais 
               <option value="cga">CGA</option>
               <option value="vapor">Vaporwave</option>
               <option value="sepia">Sépia</option>
+              <option value="phosphor">Phosphore (vert terminal)</option>
+              <option value="amber">Ambre</option>
+              <option value="paper">Papier</option>
+              <option value="spectrum">Spectre</option>
+              <option value="fire">Feu</option>
+              <option value="ice">Glace</option>
+              <option value="neon">Néon</option>
               <option value="glitchblue">Bleu électrique (Glitch machine)</option>
               <option value="acid">Acide jaune (LED pop)</option>
               <option value="infrared">Infrarouge</option>
@@ -488,6 +503,49 @@ input[type=range]{touch-action:pan-y} /* un défilement vertical ne fait jamais 
     </section>
 
     <!-- ===== Export ===== -->
+    <section class="pane" data-pane="create" hidden id="createPane">
+      <div class="h">Source</div>
+      <div class="chips wrap" id="srcChips">
+        <button class="chip active" data-mode="media">Photo / vidéo</button>
+        <button class="chip" data-mode="gen">Générer</button>
+        <button class="chip" data-mode="text">Texte</button>
+        <button class="chip" data-mode="look">Looks fluides</button>
+        <button class="chip" data-mode="fluid">Fluide interactif</button>
+      </div>
+      <div data-cmode="gen"><div class="h">Moteur</div><div class="chips wrap" id="engChips"></div></div>
+      <div data-cmode="text">
+        <div class="h">Texte</div>
+        <textarea class="ta" data-k="textValue" rows="2" spellcheck="false"></textarea>
+        <div class="h">Remplissage</div><div class="chips wrap" id="fillChips"></div>
+        <label class="field"><span>Police</span><select data-k="textFont"><option value="sans">Sans</option><option value="serif">Serif</option><option value="mono">Mono</option></select></label>
+      </div>
+      <div data-cmode="look"><div class="h">Look</div><div class="chips wrap" id="lookChips"></div><div class="hint">« Fonte » et « Feu » utilisent ta dernière photo ou vidéo.</div></div>
+      <div data-cmode="fluid">
+        <div class="hint">Glisse le doigt ou la souris sur l'image : ta photo bouge comme un liquide. Combine avec un style (ASCII, Glitch machine…) pour un fluide ASCII.</div>
+        <label class="field"><span>Force <output></output></span><input type="range" data-k="fluidForce" min="5" max="100"></label>
+        <label class="field"><span>Tourbillons <output></output></span><input type="range" data-k="fluidCurl" min="0" max="80"></label>
+        <label class="field"><span>Retour à l'image <output></output></span><input type="range" data-k="fluidRestore" min="0" max="100"></label>
+        <label class="switch"><input type="checkbox" data-k="fluidInk"><i></i>Encre colorée</label>
+        <label class="switch"><input type="checkbox" data-k="fluidAuto"><i></i>Mouvement automatique</label>
+        <button class="btn block" id="fluidReset">Remettre la photo</button>
+      </div>
+      <div data-cmode="gen text look">
+        <label class="field"><span>Format</span><select data-k="artboard"><option value="1:1">Carré 1:1</option><option value="3:2">Paysage 3:2</option><option value="4:5">Portrait 4:5</option><option value="16:9">Large 16:9</option><option value="9:16">Story 9:16</option></select></label>
+      </div>
+      <div data-cmode="gen text look fluid">
+        <label class="field"><span>Vitesse <output></output></span><input type="range" data-k="genSpeed" min="0" max="100"></label>
+        <button class="btn block" id="pauseLive">Pause</button>
+        <div class="hint">Astuce : choisis ensuite un style dans l'onglet Styles (ASCII, Glitch machine, verre…) ou « Original » pour voir la source brute. L'export GIF marche aussi.</div>
+      </div>
+      <div class="h">Interaction</div>
+      <label class="switch"><input type="checkbox" data-k="react"><i></i>Réaction au curseur (loupe sur l'image)</label>
+      <div class="h">Partager</div>
+      <div class="stack">
+        <button class="btn block" id="ansiBtn">Exporter en ANSI (texte couleur pour terminal)</button>
+        <button class="btn block" id="mdBtn">Copier en bannière Markdown</button>
+        <button class="btn block" id="linkBtn">Copier le lien des réglages</button>
+      </div>
+    </section>
     <section class="pane" data-pane="export" hidden>
       <div class="h">Image</div>
       <label class="field"><span>Résolution</span>
@@ -542,11 +600,12 @@ input[type=range]{touch-action:pan-y} /* un défilement vertical ne fait jamais 
     <div class="m-editor" id="mEditor"></div>
     <div class="m-strip" id="mParams"></div>
   </div>
+  <div class="m-pane m-create" data-m="create" id="mCreate" hidden></div>
   <div class="m-pane" data-m="export" hidden>
     <div class="m-strip" id="mScale"></div>
     <div class="m-actions" id="mActions"></div>
   </div>
-  <nav class="m-tools"><button class="m-tool active" data-tool="styles"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>Styles</button><button class="m-tool" data-tool="recipes"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 4.9L19 9.5l-5.1 1.7L12 16l-1.9-4.8L5 9.5l5.1-1.6zM19 15l.8 2.1 2.2.9-2.2.8L19 21l-.8-2.2-2.2-.8 2.2-.9z"/></svg>Recettes</button><button class="m-tool" data-tool="adjust"><svg viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>Réglages</button><button class="m-tool" data-tool="fx"><svg viewBox="0 0 24 24"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8l1.4 1.4M17.8 6.2l1.4-1.4M12.2 6.2l-1.4-1.4M15 9l-12 12"/></svg>Effets</button><button class="m-tool" data-tool="anim"><svg viewBox="0 0 24 24"><path d="M4 12c2-5 4-5 6 0s4 5 6 0 3-3 4-2"/><path d="M4 18c2-3 4-3 6 0s4 3 6 0" opacity=".5"/><path d="M4 6c2-3 4-3 6 0s4 3 6 0" opacity=".5"/></svg>Animer</button><button class="m-tool" data-tool="export"><svg viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg>Export</button></nav>
+  <nav class="m-tools"><button class="m-tool active" data-tool="styles"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>Styles</button><button class="m-tool" data-tool="recipes"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 4.9L19 9.5l-5.1 1.7L12 16l-1.9-4.8L5 9.5l5.1-1.6zM19 15l.8 2.1 2.2.9-2.2.8L19 21l-.8-2.2-2.2-.8 2.2-.9z"/></svg>Recettes</button><button class="m-tool" data-tool="adjust"><svg viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>Réglages</button><button class="m-tool" data-tool="fx"><svg viewBox="0 0 24 24"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8l1.4 1.4M17.8 6.2l1.4-1.4M12.2 6.2l-1.4-1.4M15 9l-12 12"/></svg>Effets</button><button class="m-tool" data-tool="anim"><svg viewBox="0 0 24 24"><path d="M4 12c2-5 4-5 6 0s4 5 6 0 3-3 4-2"/><path d="M4 18c2-3 4-3 6 0s4 3 6 0" opacity=".5"/><path d="M4 6c2-3 4-3 6 0s4 3 6 0" opacity=".5"/></svg>Animer</button><button class="m-tool" data-tool="create"><svg viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/><circle cx="12" cy="12" r="2.5"/></svg>Créer</button><button class="m-tool" data-tool="export"><svg viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg>Export</button></nav>
 </div>
 <div class="m-import" id="mImport" hidden>
   <div class="m-import-card">
@@ -580,6 +639,8 @@ const DEFAULTS = {
   overlay:'#ff2bd6', overlayMode:'overlay', overlayAmt:0, seed:7, exportScale:2,
   backdrop:'solid', backdropSoft:12, backdropOpacity:100, layerOpacity:100, layerBlend:'source-over',
   coverage:100, randomChars:false, distort:'none', distortAmt:50, blur:'none', blurAmt:30, levels:4, sortThresh:50, glassStr:60, glassTint:'#7fd6ff',
+  artboard:'1:1', genSpeed:50, textValue:'ASCII', textFont:'sans', react:false,
+  fluidForce:60, fluidCurl:30, fluidRestore:20, fluidInk:false, fluidAuto:true,
   smearAngle:150, smearLen:60, smearAmt:55, smearThresh:40, contour:50,
   animDur:3, animFps:15, animSpeed:1, animAmt:60, gifWidth:480
 };
@@ -614,6 +675,10 @@ const PALETTES = {
   cga:['#000000','#55ffff','#ff55ff','#ffffff'],
   vapor:['#1a0033','#7b2fff','#ff00aa','#00e5ff','#ffb3fd','#fdf6ff'],
   sepia:['#2b1d0e','#5c3d1e','#8f6a3a','#c8a46b','#f3e3c0'],
+  phosphor:['#001a06','#00ff66'], amber:['#1a0f00','#ffb000'], paper:['#f4efe4','#1a1a1a'],
+  spectrum:['#120024','#3b2bff','#00c2ff','#00ff8c','#fff200','#ff6a00','#ff2b6a'],
+  fire:['#000000','#3a0000','#c41e00','#ff6a00','#ffd23f','#ffffff'], ice:['#00060f','#0a2a5a','#2b7fd9','#8fe3ff','#ffffff'],
+  neon:['#0a0018','#ff2bd6','#2be8ff','#c4ff3d'],
   glitchblue:['#000000','#0b0838','#1d1aa8','#4b3cff','#8a7dff','#7fe9ff','#ffffff'],
   acid:['#000000','#5b2bd6','#3fd0ff','#5cff8a','#fff200'],
   infrared:['#000000','#3a0000','#c40000','#ff3b1f','#ffd0c0'],
@@ -681,12 +746,13 @@ function bayerMatrix(n){
 const BAYER = {2:bayerMatrix(2), 4:bayerMatrix(4), 8:bayerMatrix(8)};
 const BR = [[0x01,0x08],[0x02,0x10],[0x04,0x20],[0x40,0x80]]; // points braille
 
-let P = {}, FG, BG, PAL;
+let P = {}, FG, BG, PAL, PALS;
 function prepare(){
   const c = (100 + S.contrast) / 100;
   P = {k:c*c, br:S.brightness*1.6, sat:S.saturation/100, gm:100/S.gamma};
   FG = hex(S.fg); BG = hex(S.bg);
   PAL = S.palette === 'mono' ? [BG, FG] : PALETTES[S.palette].map(hex);
+  PALS = PAL.slice().sort((p, q) => lum(...p) - lum(...q));
 }
 const A = [0,0,0];
 function adj(r,g,b){
@@ -709,6 +775,7 @@ function inkRGB(r,g,b,L){
     case 'mono': return FG;
     case 'gradient': I[0] = BG[0] + (FG[0]-BG[0])*L; I[1] = BG[1] + (FG[1]-BG[1])*L; I[2] = BG[2] + (FG[2]-BG[2])*L; return I;
     case 'palette': return nearest(PAL, r, g, b);
+    case 'gradmap': return lerpStops(PALS, L);
     default: I[0] = r; I[1] = g; I[2] = b; return I;
   }
 }
@@ -730,6 +797,7 @@ function buildPre(W, H){
   preCtx.drawImage(src, 0, 0, pw, ph);
   if (S.distort !== 'none') distortPre(pw, ph);
   if (S.blur !== 'none') blurPre(pw, ph);
+  reactPre(pw, ph);
   SRC = preCan;
 }
 function distortPre(w, h){
@@ -1292,6 +1360,7 @@ for (const g of GLASS) STYLES_EXTRA[g] = glassStyle;
 
 const STYLES = {
   ...STYLES_EXTRA,
+  none:(o, W, H) => { o.imageSmoothingEnabled = true; o.drawImage(SRC, 0, 0, W, H); },
   ascii:textStyle, block:textStyle, braille:textStyle,
   dots:shapeStyle, lines:shapeStyle, cross:shapeStyle, diamond:shapeStyle, led:shapeStyle, mosaic:shapeStyle, lego:shapeStyle,
   diagonal:shapeStyle, mixed:shapeStyle, crosshatch:shapeStyle, stipple:shapeStyle, voxel:shapeStyle,
@@ -1400,7 +1469,8 @@ function setSrc(s){
   if (src instanceof HTMLVideoElement && src !== s) src.pause();
   src = s;
   const isVid = s instanceof HTMLVideoElement, isFile = isVid && !s.srcObject;
-  $('#mCta').hidden = !(s instanceof HTMLCanvasElement);
+  $('#mCta').hidden = !s.isDemo;
+  if (!(s instanceof HTMLCanvasElement)){ CREATE.userSrc = s; if (CREATE.mode !== 'media') setModeChipsOnly('media'); }
   $('#playBtn').hidden = $('#vidSep').hidden = !isVid;
   $('#recBtn').hidden = !isFile;
   $('#recBtn2').disabled = !isFile;
@@ -1484,6 +1554,7 @@ async function renderAnimFrames(width, label){
     for (let f = 0; f < n; f++){
       ANIM.frame = f; ANIM.phase = f/n;
       if (seekable) await seekTo(src, (f/fps) % src.duration);
+      if (src.isLive) src.update(CREATE.t + f/fps*(S.genSpeed/50));
       render(can, scale);
       frames.push(can.getContext('2d').getImageData(0, 0, can.width, can.height));
       label(Math.round(f/n*80) + ' %');
@@ -1687,6 +1758,7 @@ function recordVideo(){
 
 /* ---------- Galerie de styles ---------- */
 const STYLE_GROUPS = [
+  ['Brut',        [['none','Original']]],
   ['Texte',       [['ascii','ASCII'],['block','Blocs'],['braille','Braille']]],
   ['Pixels',      [['pixel','Pixel art'],['mosaic','Mosaïque'],['hex','Hexagones'],['lego','LEGO'],['voxel','Voxel'],['led','LED']]],
   ['Impression',  [['dither','Dither'],['dots','Halftone'],['crosshatch','Gravure'],['stipple','Pointillisme'],['posterize','Warhol']]],
@@ -2157,6 +2229,527 @@ document.querySelectorAll('.m-imp').forEach(b => b.onclick = () => {
 ['#filePhoto', '#fileVideo', '#fileShot'].forEach(id => $(id).onchange = e => { loadFile(e.target.files[0]); e.target.value = ''; });
 $('#openBtn2').onclick = openImport;
 $('#mCta').onclick = openImport;
+
+/* =====================================================================================
+   CRÉER — sources générées, texte, looks animés et fluide interactif
+   Inspiré de deux sites :
+   - un studio ASCII : moteurs génératifs (donut 3D, cube, sphère, nœud, pyramide, matrix,
+     plasma, jeu de la vie, feu, flux, étoiles, tunnel), mode texte avec remplissages,
+     réaction au curseur, export ANSI / Markdown, lien de réglages
+   - un studio « Fluid » : looks animés en shaders (aurore, fumée, mercure, or, pixels,
+     cymatique, tartan, Escher, encre, terrazzo, néon), fonte et feu sur photo,
+     et ici en plus un vrai fluide interactif qui remue ta photo
+   Toutes ces sources passent ensuite dans les styles de l'appli (ASCII, glitch, verre…).
+   ===================================================================================== */
+const ARTBOARDS = {'1:1':[720,720], '3:2':[900,600], '4:5':[640,800], '16:9':[960,540], '9:16':[540,960]};
+const CREATE = {mode:'media', engine:'donut', fill:'3d', look:'mercury', paused:false, raf:0, last:0, t:0, userSrc:null};
+const PTR = {on:false, x:.5, y:.5};
+
+/* ---------- tampon de luminance basse résolution ---------- */
+function lumBuffer(gw, gh){
+  const c = document.createElement('canvas'); c.width = gw; c.height = gh;
+  const x = c.getContext('2d'), img = x.createImageData(gw, gh), L = new Float32Array(gw*gh);
+  return {c, L, gw, gh, put(){
+    const d = img.data;
+    for (let i = 0; i < L.length; i++){ const v = L[i] <= 0 ? 0 : L[i] >= 1 ? 255 : L[i]*255; d[i*4] = d[i*4+1] = d[i*4+2] = v; d[i*4+3] = 255; }
+    x.putImageData(img, 0, 0);
+  }};
+}
+const blit = (ctx, B, W, H) => { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(B.c, 0, 0, W, H); };
+
+/* ---------- moteurs 3D (nuage de points + z-buffer, façon donut.c) ---------- */
+function surfaceEngine(kind){
+  return (W, H) => {
+    const gw = 260, gh = Math.max(1, Math.round(260*H/W)), B = lumBuffer(gw, gh), zb = new Float32Array(gw*gh);
+    const knot = t => { const r = 2 + Math.cos(3*t); return [r*Math.cos(2*t)*.42, r*Math.sin(2*t)*.42, Math.sin(3*t)*.42]; };
+    return {draw(ctx, W, H, t){
+      B.L.fill(0); zb.fill(0);
+      const A = t*.8, Bt = t*.5, cA = Math.cos(A), sA = Math.sin(A), cB = Math.cos(Bt), sB = Math.sin(Bt);
+      const sc = Math.min(gw, gh)*1.3, lx = 0, ly = .7071, lz = -.7071;
+      const plot = (x, y, z, nx, ny, nz) => {
+        const y1 = y*cA - z*sA, z1 = y*sA + z*cA, x2 = x*cB - y1*sB, y2 = x*sB + y1*cB;
+        const ny1 = ny*cA - nz*sA, nz1 = ny*sA + nz*cA, nx2 = nx*cB - ny1*sB, ny2 = nx*sB + ny1*cB;
+        const ooz = 1/(z1 + 5), px = (gw/2 + sc*x2*ooz) | 0, py = (gh/2 - sc*y2*ooz) | 0;
+        if (px < 0 || py < 0 || px >= gw || py >= gh) return;
+        const i = py*gw + px; if (ooz <= zb[i]) return; zb[i] = ooz;
+        const l = nx2*lx + ny2*ly + nz1*lz;
+        B.L[i] = l > 0 ? .12 + l*.88 : .05 + (l + 1)*.07;
+      };
+      if (kind === 'donut'){
+        for (let th = 0; th < 6.2832; th += .03){ const ct = Math.cos(th), st = Math.sin(th);
+          for (let ph = 0; ph < 6.2832; ph += .011){ const cp = Math.cos(ph), sp = Math.sin(ph), R = 1 + .45*ct;
+            plot(R*cp, R*sp, .45*st, ct*cp, ct*sp, st); } }
+      } else if (kind === 'sphere'){
+        for (let th = 0; th < 3.1416; th += .014){ const ct = Math.cos(th), st = Math.sin(th);
+          for (let ph = 0; ph < 6.2832; ph += .011){ const nx = st*Math.cos(ph), ny = ct, nz = st*Math.sin(ph);
+            const band = .85 + .15*Math.sign(Math.sin(ph*8)*Math.sin(th*8));
+            plot(nx*1.35, ny*1.35, nz*1.35, nx*band, ny*band, nz*band); } }
+      } else if (kind === 'cube'){
+        const s = 1.05, n = 130;
+        for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++){ const a = -s + 2*s*i/n, b = -s + 2*s*j/n;
+          plot(s, a, b, 1, 0, 0); plot(-s, a, b, -1, 0, 0); plot(a, s, b, 0, 1, 0); plot(a, -s, b, 0, -1, 0); plot(a, b, s, 0, 0, 1); plot(a, b, -s, 0, 0, -1); }
+      } else if (kind === 'pyramid'){
+        const ap = [0, 1.25, 0], base = [[-1.1, -.85, -1.1], [1.1, -.85, -1.1], [1.1, -.85, 1.1], [-1.1, -.85, 1.1]], n = 150;
+        for (let f = 0; f < 4; f++){
+          const p0 = base[f], p1 = base[(f + 1) % 4];
+          const e1 = [p1[0]-p0[0], p1[1]-p0[1], p1[2]-p0[2]], e2 = [ap[0]-p0[0], ap[1]-p0[1], ap[2]-p0[2]];
+          let nx = e1[1]*e2[2] - e1[2]*e2[1], ny = e1[2]*e2[0] - e1[0]*e2[2], nz = e1[0]*e2[1] - e1[1]*e2[0];
+          const m = Math.hypot(nx, ny, nz); nx /= m; ny /= m; nz /= m;
+          if (nx*(p0[0] + p1[0]) + nz*(p0[2] + p1[2]) < 0){ nx = -nx; ny = -ny; nz = -nz; }
+          for (let i = 0; i <= n; i++) for (let j = 0; j <= n - i; j++){ const a = i/n, b = j/n;
+            plot(p0[0] + a*e1[0] + b*e2[0], p0[1] + a*e1[1] + b*e2[1], p0[2] + a*e1[2] + b*e2[2], nx, ny, nz); }
+        }
+        for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) plot(-1.1 + 2.2*i/n, -.85, -1.1 + 2.2*j/n, 0, -1, 0);
+      } else if (kind === 'knot'){
+        const e = .002, r = .17;
+        for (let k = 0; k < 1100; k++){
+          const tt = k/1100*6.2832, c = knot(tt), a = knot(tt + e), b = knot(tt - e);
+          let T = [a[0]-b[0], a[1]-b[1], a[2]-b[2]]; let m = Math.hypot(...T); T = T.map(v => v/m);
+          let N = [a[0]+b[0]-2*c[0], a[1]+b[1]-2*c[1], a[2]+b[2]-2*c[2]]; m = Math.hypot(...N) || 1; N = N.map(v => v/m);
+          const Bv = [T[1]*N[2]-T[2]*N[1], T[2]*N[0]-T[0]*N[2], T[0]*N[1]-T[1]*N[0]];
+          for (let s = 0; s < 6.2832; s += .07){ const cs = Math.cos(s), ss = Math.sin(s);
+            const nx = cs*N[0] + ss*Bv[0], ny = cs*N[1] + ss*Bv[1], nz = cs*N[2] + ss*Bv[2];
+            plot(c[0] + r*nx, c[1] + r*ny, c[2] + r*nz, nx, ny, nz); }
+        }
+      }
+      B.put(); blit(ctx, B, W, H);
+    }};
+  };
+}
+
+/* ---------- moteurs 2D ---------- */
+const vnoise = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const h = (a, b) => { const s = Math.sin(a*127.1 + b*311.7)*43758.5453; return s - Math.floor(s); };
+  const u = xf*xf*(3 - 2*xf), v = yf*yf*(3 - 2*yf);
+  return (h(xi, yi)*(1-u) + h(xi+1, yi)*u)*(1-v) + (h(xi, yi+1)*(1-u) + h(xi+1, yi+1)*u)*v; };
+function engine2D(gwBase, init, step){
+  return (W, H) => {
+    const gw = gwBase, gh = Math.max(1, Math.round(gwBase*H/W)), B = lumBuffer(gw, gh), st = init(gw, gh, B);
+    let last = null;
+    return {draw(ctx, W, H, t){ const dt = last === null ? 1/30 : Math.max(0, Math.min(.1, t - last)); last = t; step(st, B, gw, gh, t, dt); B.put(); blit(ctx, B, W, H); }};
+  };
+}
+const ENGINES = {
+  donut: surfaceEngine('donut'), cube: surfaceEngine('cube'), sphere: surfaceEngine('sphere'), knot: surfaceEngine('knot'), pyramid: surfaceEngine('pyramid'),
+  matrix: engine2D(110, (gw, gh) => ({y:Float32Array.from({length:gw}, () => Math.random()*gh), v:Float32Array.from({length:gw}, () => 8 + Math.random()*22), acc:0}),
+    (s, B, gw, gh, t, dt) => {
+      for (let i = 0; i < B.L.length; i++) B.L[i] *= Math.pow(.9, dt*30);
+      for (let x = 0; x < gw; x++){
+        const y0 = s.y[x]; s.y[x] += s.v[x]*dt;
+        for (let y = Math.floor(y0); y <= Math.floor(s.y[x]); y++) if (y >= 0 && y < gh) B.L[y*gw + x] = .55 + Math.random()*.3;
+        const hy = Math.floor(s.y[x]); if (hy >= 0 && hy < gh) B.L[hy*gw + x] = 1;
+        if (s.y[x] > gh + Math.random()*40){ s.y[x] = -Math.random()*20; s.v[x] = 8 + Math.random()*22; }
+      }
+    }),
+  plasma: engine2D(160, () => ({}), (s, B, gw, gh, t) => {
+    for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++){
+      const X = x/gw*10, Y = y/gw*10;
+      const v = Math.sin(X + t) + Math.sin(Y*1.3 + t*1.2) + Math.sin((X + Y)*.7 + t*.7) + Math.sin(Math.hypot(X - 5 - Math.sin(t*.5)*3, Y - 5)*1.2 - t*1.4);
+      B.L[y*gw + x] = .5 + v/8;
+    }
+  }),
+  life: engine2D(120, (gw, gh) => ({g:Uint8Array.from({length:gw*gh}, () => Math.random() < .3 ? 1 : 0), acc:0}),
+    (s, B, gw, gh, t, dt) => {
+      s.acc += dt;
+      if (s.acc > .09){ s.acc = 0;
+        const n = new Uint8Array(gw*gh); let alive = 0;
+        for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++){
+          let c = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (dx || dy) c += s.g[((y + dy + gh) % gh)*gw + (x + dx + gw) % gw];
+          const a = s.g[y*gw + x]; n[y*gw + x] = (c === 3 || (a && c === 2)) ? 1 : 0; alive += n[y*gw + x];
+        }
+        s.g = n; if (alive < gw*gh*.03) for (let i = 0; i < s.g.length; i++) s.g[i] = Math.random() < .3 ? 1 : 0;
+      }
+      for (let i = 0; i < B.L.length; i++) B.L[i] = s.g[i] ? 1 : B.L[i]*.8;
+    }),
+  fire: engine2D(120, (gw, gh) => ({f:new Float32Array(gw*gh)}), (s, B, gw, gh) => {
+    const f = s.f;
+    for (let x = 0; x < gw; x++) f[(gh - 1)*gw + x] = .75 + Math.random()*.25;
+    for (let y = gh - 2; y >= 0; y--) for (let x = 0; x < gw; x++){
+      const xr = Math.min(gw - 1, Math.max(0, x + ((Math.random()*3) | 0) - 1));
+      const below = f[(y + 1)*gw + xr], below2 = f[Math.min(gh - 1, y + 2)*gw + x];
+      f[y*gw + x] = Math.max(0, (below*2 + below2 + f[(y + 1)*gw + x])/4 - .006 - Math.random()*.008);
+    }
+    B.L.set(f);
+  }),
+  flow: engine2D(200, (gw, gh) => ({p:Array.from({length:3200}, () => [Math.random()*gw, Math.random()*gh])}), (s, B, gw, gh, t, dt) => {
+    for (let i = 0; i < B.L.length; i++) B.L[i] *= Math.pow(.94, dt*30);
+    for (const q of s.p){
+      const a = vnoise(q[0]*.02 + t*.05, q[1]*.02)*12.57;
+      q[0] += Math.cos(a)*dt*40; q[1] += Math.sin(a)*dt*40;
+      if (q[0] < 0 || q[1] < 0 || q[0] >= gw || q[1] >= gh || Math.random() < .004){ q[0] = Math.random()*gw; q[1] = Math.random()*gh; }
+      const i = (q[1] | 0)*gw + (q[0] | 0); B.L[i] = Math.min(1, B.L[i] + .7);
+    }
+  }),
+  stars: engine2D(200, () => ({s:Array.from({length:1400}, () => [Math.random()*2 - 1, Math.random()*2 - 1, Math.random()])}), (s, B, gw, gh, t, dt) => {
+    for (let i = 0; i < B.L.length; i++) B.L[i] *= .82;
+    for (const q of s.s){
+      q[2] -= dt*.35; if (q[2] <= .02){ q[0] = Math.random()*2 - 1; q[1] = Math.random()*2 - 1; q[2] = 1; }
+      const px = (gw/2 + q[0]/q[2]*gw*.5) | 0, py = (gh/2 + q[1]/q[2]*gw*.5) | 0;
+      const br = Math.min(1, .35 + (1 - q[2])*1.4), sz = q[2] < .3 ? 3 : 2;
+      for (let oy = 0; oy < sz; oy++) for (let ox = 0; ox < sz; ox++){ const X = px + ox, Y = py + oy; if (X >= 0 && Y >= 0 && X < gw && Y < gh){ const i = Y*gw + X; B.L[i] = Math.min(1, B.L[i] + br); } }
+    }
+  }),
+  tunnel: engine2D(180, () => ({}), (s, B, gw, gh, t) => {
+    for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++){
+      const dx = (x - gw/2)/gw, dy = (y - gh/2)/gw, d = Math.hypot(dx, dy) + 1e-3, a = Math.atan2(dy, dx)/Math.PI;
+      const u = .35/d + t*1.4, v = a*4 + t*.25;
+      const ch = ((Math.floor(u*2) + Math.floor(v*2)) & 1) ? 1 : .25;
+      B.L[y*gw + x] = ch*Math.min(1, d*3.2) + .03;
+    }
+  })
+};
+const ENGINE_LABELS = [['donut','Donut 3D'],['cube','Cube'],['sphere','Sphère'],['knot','Nœud'],['pyramid','Pyramide'],['matrix','Matrix'],['plasma','Plasma'],['life','Jeu de la vie'],['fire','Feu'],['flow','Flux'],['stars','Étoiles'],['tunnel','Tunnel']];
+
+/* ---------- mode texte ---------- */
+function makeTextSource(W, H){
+  const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
+  const mask = mk(), mx = mask.getContext('2d'), tmp = mk(), tx = tmp.getContext('2d');
+  let fillEng = null, fillName = null;
+  return {draw(ctx, W, H, t){
+    const lines = (S.textValue || 'ASCII').split('\n').slice(0, 6), fam = {sans:'system-ui,-apple-system,"Segoe UI",sans-serif', serif:'Georgia,"Times New Roman",serif', mono:'ui-monospace,Menlo,Consolas,monospace'}[S.textFont] || 'sans-serif';
+    mx.font = `900 100px ${fam}`;
+    const widest = Math.max(...lines.map(l => mx.measureText(l || ' ').width), 1);
+    const size = Math.min(W*.86/widest*100, H*.8/lines.length/1.05);
+    mx.clearRect(0, 0, W, H); mx.font = `900 ${size}px ${fam}`; mx.textAlign = 'center'; mx.textBaseline = 'middle'; mx.fillStyle = '#fff';
+    lines.forEach((l, i) => mx.fillText(l, W/2, H/2 + (i - (lines.length - 1)/2)*size*1.05));
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+    const fill = CREATE.fill;
+    if (fill === 'solid'){ ctx.drawImage(mask, 0, 0); return; }
+    if (fill === '3d'){
+      const depth = Math.max(4, size*.14), ang = .75 + .35*Math.sin(t*.8);
+      tx.clearRect(0, 0, W, H); tx.globalCompositeOperation = 'source-over'; tx.drawImage(mask, 0, 0);
+      tx.globalCompositeOperation = 'source-in'; tx.fillStyle = '#fff';
+      for (let k = Math.ceil(depth); k >= 1; k--){
+        const shade = Math.round(40 + 90*(1 - k/depth)); tx.fillStyle = `rgb(${shade},${shade},${shade})`;
+        tx.fillRect(0, 0, W, H); ctx.drawImage(tmp, Math.cos(ang)*k, Math.sin(ang)*k);
+      }
+      tx.globalCompositeOperation = 'source-over'; tx.clearRect(0, 0, W, H); tx.drawImage(mask, 0, 0); tx.globalCompositeOperation = 'source-in';
+      const g = tx.createLinearGradient(0, H*.3, 0, H*.7); g.addColorStop(0, '#fff'); g.addColorStop(1, '#b8b8b8'); tx.fillStyle = g; tx.fillRect(0, 0, W, H);
+      tx.globalCompositeOperation = 'source-over'; ctx.drawImage(tmp, 0, 0); return;
+    }
+    if (fillName !== fill){ fillEng = ENGINES[fill](W, H); fillName = fill; }
+    tx.globalCompositeOperation = 'source-over'; tx.clearRect(0, 0, W, H); fillEng.draw(tx, W, H, t);
+    tx.fillStyle = 'rgba(255,255,255,.08)'; tx.fillRect(0, 0, W, H);
+    tx.globalCompositeOperation = 'destination-in'; tx.drawImage(mask, 0, 0); tx.globalCompositeOperation = 'source-over';
+    ctx.drawImage(tmp, 0, 0);
+  }};
+}
+const FILL_LABELS = [['solid','Uni'],['3d','3D'],['matrix','Matrix'],['plasma','Plasma'],['donut','Donut'],['fire','Feu'],['flow','Flux']];
+
+/* ---------- looks animés (shaders WebGL) ---------- */
+const LOOKS = [['aurora','Aurore'],['bloom','Bloom'],['smoke','Fumée'],['afterglow','Crépuscule'],['mercury','Mercure'],['gilded','Or liquide'],['pixelbeam','Pixelbeam'],['cymatic','Cymatique'],['tartan','Tartan'],['escher','Escher'],['monsoon','Encre'],['terrazzo','Terrazzo'],['neon','Mur néon'],['melt','Fonte (photo)'],['firephoto','Feu (photo)']];
+const LOOK_FS = `precision highp float;
+uniform vec2 R; uniform float T; uniform float LK; uniform sampler2D P; uniform float PA;
+float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
+float n2(vec2 p){ vec2 i = floor(p), f = fract(p), u = f*f*(3.0-2.0*f); return mix(mix(h(i), h(i+vec2(1.0,0.0)), u.x), mix(h(i+vec2(0.0,1.0)), h(i+vec2(1.0,1.0)), u.x), u.y); }
+float fbm(vec2 p){ float v = 0.0, a = 0.5; mat2 m = mat2(1.6,1.2,-1.2,1.6); for (int i = 0; i < 5; i++){ v += a*n2(p); p = m*p; a *= 0.5; } return v; }
+vec3 pal(float t, vec3 a, vec3 b, vec3 c, vec3 d){ return a + b*cos(6.28318*(c*t + d)); }
+vec3 photo(vec2 uv){ vec2 s = vec2(1.0); float ca = R.x/R.y; if (ca > PA) s.y = PA/ca; else s.x = ca/PA; return texture2D(P, clamp((uv - 0.5)*s + 0.5, 0.0, 1.0)).rgb; }
+float hgt(vec2 z){ return fbm(z*1.3 + vec2(fbm(z + T*0.1), fbm(z*1.2 - T*0.08))*1.5); }
+vec3 tart(float s){ return s < 0.38 ? vec3(0.62,0.08,0.1) : s < 0.5 ? vec3(0.05,0.08,0.22) : s < 0.54 ? vec3(0.95,0.8,0.2) : s < 0.82 ? vec3(0.06,0.3,0.16) : vec3(0.05,0.08,0.22); }
+void main(){
+  vec2 uv = gl_FragCoord.xy/R, p = (gl_FragCoord.xy - 0.5*R)/min(R.x, R.y); float t = T; vec3 col = vec3(0.0);
+  if (LK < 0.5){
+    col = mix(vec3(0.01,0.02,0.06), vec3(0.02,0.05,0.12), uv.y);
+    for (int i = 0; i < 3; i++){ float fi = float(i), x = p.x*1.5 + fi*1.7, n = fbm(vec2(x*0.8, t*0.08 + fi)), c = -0.05 + 0.22*fi + 0.35*(n - 0.5), d = p.y - c;
+      float band = exp(-d*d*28.0)*smoothstep(-0.6, 0.1, d + 0.4), rays = 0.5 + 0.5*fbm(vec2(x*6.0, t*0.2 + fi*3.0));
+      col += mix(vec3(0.1,1.0,0.55), vec3(0.55,0.25,1.0), fi/2.0 + 0.2*sin(t*0.3 + x))*band*rays*0.9; }
+    col += step(0.997, h(floor(gl_FragCoord.xy/2.0)))*0.7;
+  } else if (LK < 1.5){
+    col = vec3(0.03,0.02,0.05);
+    for (int i = 0; i < 6; i++){ float fi = float(i); vec2 c = 0.55*vec2(sin(t*0.31*(1.0 + fi*0.13) + fi*2.1), cos(t*0.27*(1.0 + fi*0.17) + fi*1.3)); float d = length(p - c);
+      col += pal(fi/6.0 + t*0.02, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.0,0.33,0.67))*exp(-d*d*5.0)*0.65; }
+    col = 1.0 - exp(-col*1.6);
+  } else if (LK < 3.5){
+    vec2 q = p*1.6, a = vec2(fbm(q + t*0.05), fbm(q + vec2(5.2,1.3) - t*0.04)), b = vec2(fbm(q + 3.0*a + vec2(1.7,9.2) + t*0.08), fbm(q + 3.0*a + vec2(8.3,2.8) - t*0.06));
+    float f = fbm(q + 3.0*b);
+    if (LK < 2.5) col = mix(vec3(0.05,0.06,0.09), vec3(0.85,0.88,0.95), smoothstep(0.25, 0.85, f)) + vec3(0.1,0.15,0.25)*length(b)*0.4;
+    else col = pal(f*1.2 + length(a)*0.4 + t*0.02, vec3(0.5,0.35,0.3), vec3(0.5,0.35,0.3), vec3(1.0,0.9,0.7), vec3(0.0,0.15,0.25))*(0.4 + f*0.9);
+  } else if (LK < 5.5){
+    vec2 q = p*1.4; float e = 0.01, h0 = hgt(q), hx = hgt(q + vec2(e,0.0)), hy = hgt(q + vec2(0.0,e));
+    vec3 nrm = normalize(vec3((h0 - hx)/e*0.35, (h0 - hy)/e*0.35, 1.0)), rd = reflect(vec3(0.0,0.0,-1.0), nrm);
+    vec3 env = mix(vec3(0.04), vec3(0.95), smoothstep(-0.3, 0.7, rd.y)); env += 0.7*smoothstep(0.82, 0.95, 0.5 + 0.5*sin(rd.x*7.0 + t*0.3));
+    float sp = pow(max(0.0, dot(rd, normalize(vec3(-0.4,0.6,0.7)))), 40.0);
+    col = env*(0.6 + 0.4*nrm.z) + sp;
+    if (LK > 4.5) col *= vec3(1.15,0.86,0.42);
+  } else if (LK < 6.5){
+    vec2 g = floor(gl_FragCoord.xy/8.0)*8.0, pp = (g - 0.5*R)/min(R.x, R.y);
+    float v = 0.5 + 0.35*sin(pp.x*3.0 + t)*cos(pp.y*2.0 - t*0.7) + 0.25*(fbm(pp*2.0 + t*0.1) - 0.5);
+    float lv = clamp(floor(v*4.0 + h(g) - 0.5), 0.0, 3.0);
+    col = lv < 0.5 ? vec3(0.06,0.04,0.12) : lv < 1.5 ? vec3(0.45,0.12,0.6) : lv < 2.5 ? vec3(1.0,0.35,0.45) : vec3(1.0,0.85,0.55);
+    vec2 m = mod(gl_FragCoord.xy, 8.0); col *= step(m.x, 6.5)*step(m.y, 6.5)*0.9 + 0.1;
+  } else if (LK < 7.5){
+    vec2 q = p + 0.5; float n = 3.0 + 2.0*sin(t*0.2), mm = 5.0 + 2.0*cos(t*0.17), pi = 3.14159;
+    float v = sin(n*pi*q.x)*sin(mm*pi*q.y) - sin(mm*pi*q.x)*sin(n*pi*q.y);
+    col = mix(vec3(0.04,0.05,0.07), vec3(0.95,0.9,0.8), exp(-abs(v)*14.0)) + h(gl_FragCoord.xy)*0.05;
+  } else if (LK < 8.5){
+    vec3 cx = tart(fract(p.x*2.5 + t*0.02)), cy = tart(fract(p.y*2.5));
+    float tw = mod(floor(gl_FragCoord.x/3.0) + floor(gl_FragCoord.y/3.0), 4.0) < 2.0 ? 1.0 : 0.0;
+    col = mix(cx, cy, 0.5)*0.55 + mix(cy, cx, tw)*0.45; col *= 0.85 + 0.15*h(floor(gl_FragCoord.xy/2.0));
+  } else if (LK < 9.5){
+    float r = length(p), a = atan(p.y, p.x); vec2 z = vec2(log(r) - t*0.25, a/6.28318); z = vec2(z.x + z.y*0.6, z.y*3.0);
+    vec2 g = fract(z*vec2(2.0,4.0)); float ch = mod(floor(z.x*2.0) + floor(z.y*4.0), 2.0);
+    col = mix(vec3(0.08,0.08,0.1), vec3(0.92,0.9,0.85), ch)*(0.7 + 0.3*smoothstep(0.0, 0.08, min(min(g.x, 1.0 - g.x), min(g.y, 1.0 - g.y))));
+    col *= smoothstep(0.0, 0.05, r);
+  } else if (LK < 10.5){
+    vec3 paper = vec3(0.95,0.92,0.85) - 0.06*fbm(p*40.0);
+    float pig = fbm(p*2.0 + vec2(fbm(p*3.0 + t*0.03), fbm(p*3.0 - t*0.02))), m = smoothstep(0.45, 0.62, pig), edge = smoothstep(0.45, 0.5, pig) - smoothstep(0.5, 0.6, pig);
+    col = mix(paper, vec3(0.25,0.32,0.4)*(0.75 + 0.5*fbm(p*8.0)), m*0.85) - edge*0.15;
+  } else if (LK < 11.5){
+    vec2 q = p*7.0 + t*0.05, n = floor(q), f = fract(q); float best = 9.0; vec2 bid = vec2(0.0);
+    for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++){ vec2 gg = vec2(float(i), float(j)), o = vec2(h(n + gg), h(n + gg + 7.0)); float d = length(gg + o - f); if (d < best){ best = d; bid = n + gg; } }
+    col = vec3(0.93,0.9,0.84) - 0.05*fbm(p*30.0);
+    if (best < 0.18 + 0.14*h(bid) && h(bid + 3.0) < 0.6){ float k = h(bid + 9.0); col = k < 0.33 ? vec3(0.78,0.36,0.25) : k < 0.66 ? vec3(0.55,0.65,0.5) : vec3(0.18,0.18,0.2); }
+    col += (step(0.985, h(floor(gl_FragCoord.xy/2.0))) - 0.5)*0.05;
+  } else if (LK < 12.5){
+    vec2 b = p*vec2(6.0,12.0); b.x += mod(floor(b.y), 2.0)*0.5; vec2 bi = floor(b), bf = fract(b);
+    col = vec3(0.09,0.06,0.07)*(0.7 + 0.6*h(bi))*(0.55 + 0.45*smoothstep(0.0, 0.06, min(min(bf.x, 1.0 - bf.x), min(bf.y, 1.0 - bf.y))));
+    for (int i = 0; i < 3; i++){ float fi = float(i), y = 0.22*sin(p.x*2.2 + t*0.6 + fi*2.0) + (fi - 1.0)*0.24, d = abs(p.y - y);
+      float fl = 0.85 + 0.15*step(0.06, h(vec2(floor(t*12.0), fi)));
+      vec3 nc = fi < 0.5 ? vec3(1.0,0.2,0.6) : fi < 1.5 ? vec3(0.2,0.9,1.0) : vec3(0.7,1.0,0.2);
+      col += nc*(exp(-d*90.0)*1.2 + exp(-d*10.0)*0.25)*fl; }
+  } else if (LK < 13.5){
+    vec2 w = uv + (0.13 + 0.05*sin(t*0.3))*vec2(fbm(uv*2.5 + t*0.15) - 0.5, fbm(uv*2.5 + 7.0 - t*0.12) - 0.5)*2.0;
+    w.y += 0.03*sin(uv.x*10.0 + t) + 0.16*smoothstep(0.35, 0.9, fbm(vec2(uv.x*9.0, t*0.25)))*uv.y;  // coulures
+    col = photo(w);
+  } else {
+    vec3 base = photo(uv + vec2(0.0, 0.015*(fbm(uv*8.0 - vec2(0.0, t*1.5)) - 0.5)));
+    float f = fbm(vec2(uv.x*6.0, uv.y*4.0 - t*1.6)), l = dot(base, vec3(0.3,0.59,0.11));
+    float fl = smoothstep(0.42, 0.8, f*1.2*(1.2 - uv.y) + l*0.25);
+    col = base*(1.0 - fl*0.6) + mix(vec3(1.0,0.2,0.0), vec3(1.0,0.9,0.4), fl)*fl*1.3;
+  }
+  gl_FragColor = vec4(col, 1.0);
+}`;
+function makeLookSource(c, lookId){
+  const gl = c.getContext('webgl', {preserveDrawingBuffer:true, antialias:false});
+  if (!gl) return null;
+  const sh = (type, code) => { const s = gl.createShader(type); gl.shaderSource(s, code); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, 'attribute vec2 a;void main(){gl_Position=vec4(a,0.0,1.0);}'));
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, LOOK_FS)); gl.linkProgram(prog); gl.useProgram(prog);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'a'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+  [[gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE], [gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR]].forEach(([k, v]) => gl.texParameteri(gl.TEXTURE_2D, k, v));
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  const U = n => gl.getUniformLocation(prog, n);
+  const ph = CREATE.userSrc || DEMO, pw = ph.naturalWidth || ph.videoWidth || ph.width, phh = ph.naturalHeight || ph.videoHeight || ph.height;
+  const upload = () => { try { gl.bindTexture(gl.TEXTURE_2D, tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, ph); } catch {} };
+  upload();
+  const idx = LOOKS.findIndex(l => l[0] === lookId);
+  return {draw(t){
+    if (ph instanceof HTMLVideoElement && idx >= 13) upload();
+    gl.viewport(0, 0, c.width, c.height);
+    gl.uniform2f(U('R'), c.width, c.height); gl.uniform1f(U('T'), t); gl.uniform1f(U('LK'), idx); gl.uniform1i(U('P'), 0); gl.uniform1f(U('PA'), pw/phh);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }};
+}
+
+/* ---------- fluide interactif (« stable fluids », WebGL2) : ta photo devient un liquide ---------- */
+function makeFluidSim(c, photo){
+  const gl = c.getContext('webgl2', {alpha:false, depth:false, stencil:false, antialias:false, preserveDrawingBuffer:true});
+  if (!gl || !gl.getExtension('EXT_color_buffer_float')) return null;
+  const VS = '#version 300 es\nin vec2 a; out vec2 vUv; void main(){ vUv = a*0.5 + 0.5; gl_Position = vec4(a, 0.0, 1.0); }';
+  const head = '#version 300 es\nprecision highp float; precision highp sampler2D; in vec2 vUv; out vec4 o; uniform vec2 tx;\n';
+  const NB = 'float L(sampler2D s, int c){ return texture(s, vUv - vec2(tx.x, 0.0))[c]; } float Rr(sampler2D s, int c){ return texture(s, vUv + vec2(tx.x, 0.0))[c]; } float B(sampler2D s, int c){ return texture(s, vUv - vec2(0.0, tx.y))[c]; } float T(sampler2D s, int c){ return texture(s, vUv + vec2(0.0, tx.y))[c]; }\n';
+  const SRC = {
+    copy:   'uniform sampler2D u; void main(){ o = texture(u, vUv); }',
+    splat:  'uniform sampler2D u; uniform vec2 pt; uniform vec3 col; uniform float rad; uniform float ar; void main(){ vec2 p = vUv - pt; p.x *= ar; o = vec4(texture(u, vUv).xyz + exp(-dot(p, p)/rad)*col, 1.0); }',
+    advect: 'uniform sampler2D vel; uniform sampler2D src; uniform sampler2D tgt; uniform float dt; uniform float diss; uniform float restore; void main(){ vec2 c = vUv - dt*texture(vel, vUv).xy*tx; vec4 r = diss*texture(src, c); o = mix(r, texture(tgt, vUv), restore); }',
+    div:    NB + 'uniform sampler2D v; void main(){ o = vec4(0.5*(Rr(v,0) - L(v,0) + T(v,1) - B(v,1)), 0.0, 0.0, 1.0); }',
+    curl:   NB + 'uniform sampler2D v; void main(){ o = vec4(0.5*((Rr(v,1) - L(v,1)) - (T(v,0) - B(v,0))), 0.0, 0.0, 1.0); }',
+    vort:   NB + 'uniform sampler2D v; uniform sampler2D cu; uniform float curl; uniform float dt; void main(){ vec2 f = 0.5*vec2(abs(T(cu,0)) - abs(B(cu,0)), abs(Rr(cu,0)) - abs(L(cu,0))); f /= length(f) + 0.0001; f *= curl*texture(cu, vUv).x; f.y *= -1.0; o = vec4(texture(v, vUv).xy + f*dt, 0.0, 1.0); }',
+    pres:   NB + 'uniform sampler2D p; uniform sampler2D d; void main(){ o = vec4((L(p,0) + Rr(p,0) + B(p,0) + T(p,0) - texture(d, vUv).x)*0.25, 0.0, 0.0, 1.0); }',
+    grad:   NB + 'uniform sampler2D p; uniform sampler2D v; void main(){ o = vec4(texture(v, vUv).xy - vec2(Rr(p,0) - L(p,0), T(p,0) - B(p,0)), 0.0, 1.0); }',
+    scale:  'uniform sampler2D u; uniform float k; void main(){ o = k*texture(u, vUv); }'
+  };
+  const mkProg = fs => { const p = gl.createProgram();
+    for (const [t, s] of [[gl.VERTEX_SHADER, VS], [gl.FRAGMENT_SHADER, head + fs]]){ const sh = gl.createShader(t); gl.shaderSource(sh, s); gl.compileShader(sh); if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh)); gl.attachShader(p, sh); }
+    gl.bindAttribLocation(p, 0, 'a'); gl.linkProgram(p); const u = {}; const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+    for (let i = 0; i < n; i++){ const nm = gl.getActiveUniform(p, i).name; u[nm] = gl.getUniformLocation(p, nm); }
+    return {p, u}; };
+  const P = {}; for (const k in SRC) P[k] = mkProg(SRC[k]);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  const mkTex = (w, h, fmt, type, intFmt, data) => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    if (data) gl.texImage2D(gl.TEXTURE_2D, 0, intFmt, fmt, type, data); else gl.texImage2D(gl.TEXTURE_2D, 0, intFmt, w, h, 0, fmt, type, null); return t; };
+  const mkFBO = (w, h) => { const t = mkTex(w, h, gl.RGBA, gl.HALF_FLOAT, gl.RGBA16F); const f = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, f); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0); gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT); return {t, f, w, h}; };
+  const dbl = (w, h) => { let a = mkFBO(w, h), b = mkFBO(w, h); return {get r(){ return a; }, get w(){ return b; }, swap(){ const x = a; a = b; b = x; }}; };
+  // tailles : dye (couleurs) en haute résolution, vitesses en basse résolution
+  const pw = photo.naturalWidth || photo.videoWidth || photo.width, ph = photo.naturalHeight || photo.videoHeight || photo.height, ar = pw/ph;
+  const DW = ar >= 1 ? 1024 : Math.round(1024*ar), DH = ar >= 1 ? Math.round(1024/ar) : 1024;
+  const SW = ar >= 1 ? 160 : Math.round(160*ar), SH = ar >= 1 ? Math.round(160/ar) : 160;
+  c.width = DW; c.height = DH;
+  const pc = document.createElement('canvas'); pc.width = DW; pc.height = DH; pc.getContext('2d').drawImage(photo, 0, 0, DW, DH);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  const photoTex = mkTex(DW, DH, gl.RGBA, gl.UNSIGNED_BYTE, gl.RGBA, pc);
+  const vel = dbl(SW, SH), dye = dbl(DW, DH), pres = dbl(SW, SH), divg = mkFBO(SW, SH), curlF = mkFBO(SW, SH);
+  const run = (prog, target, uni) => {
+    gl.useProgram(prog.p); let unit = 0;
+    for (const [k, v] of Object.entries(uni)){
+      const l = prog.u[k]; if (l == null) continue;
+      if (v && v.tex){ gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, v.tex); gl.uniform1i(l, unit++); }
+      else if (Array.isArray(v)) (v.length === 2 ? gl.uniform2f : gl.uniform3f).call(gl, l, ...v);
+      else gl.uniform1f(l, v);
+    }
+    if (target){ gl.bindFramebuffer(gl.FRAMEBUFFER, target.f); gl.viewport(0, 0, target.w, target.h); }
+    else { gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, c.width, c.height); }
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  };
+  const T = t => ({tex:t});
+  const reset = () => { run(P.copy, dye.w, {u:T(photoTex)}); dye.swap(); run(P.scale, vel.w, {u:T(vel.r.t), k:0}); vel.swap(); };
+  reset();
+  const splats = []; let lastInput = -9, lastAuto = 0, down = false, lp = null, simT = 0;
+  const splat = (x, y, dx, dy, color) => {
+    const F = 5200*(S.fluidForce/50);
+    run(P.splat, vel.w, {u:T(vel.r.t), pt:[x, y], col:[dx*F, dy*F, 0], rad:.0009*(.6 + S.fluidForce/100), ar:c.width/c.height}); vel.swap();
+    if (color){ run(P.splat, dye.w, {u:T(dye.r.t), pt:[x, y], col:color, rad:.0012, ar:c.width/c.height}); dye.swap(); }
+  };
+  const inkColor = () => { const h = Math.random()*6, f = h - Math.floor(h), q = 1 - f, i = Math.floor(h) % 6;
+    const rgb = [[1, f, 0], [q, 1, 0], [0, 1, f], [0, q, 1], [f, 0, 1], [1, 0, q]][i]; return rgb.map(v => v*.6); };
+  return {
+    reset,
+    pointer(type, e){
+      const r = view.getBoundingClientRect(), x = (e.clientX - r.left)/r.width, y = 1 - (e.clientY - r.top)/r.height;
+      if (type === 'down'){ down = true; lp = [x, y]; }
+      else if (type === 'move' && (down || e.pointerType === 'mouse' && !IS_MOBILE)){
+        if (!lp){ lp = [x, y]; return; }
+        const dx = x - lp[0], dy = y - lp[1]; lp = [x, y];
+        if (Math.abs(dx) + Math.abs(dy) > 0) splats.push([x, y, dx, dy, S.fluidInk ? inkColor() : null]);
+        lastInput = simT;
+      }
+      else if (type === 'up'){ down = false; lp = null; }
+    },
+    update(t){
+      const dt = Math.min(1/30, Math.max(1/120, t - simT || 1/60)); simT = t;
+      // mouvement automatique quand personne ne touche (pratique pour les GIF)
+      if (S.fluidAuto && simT - lastInput > 1.5 && simT - lastAuto > .35){
+        lastAuto = simT; const a = Math.random()*6.283;
+        splats.push([.2 + Math.random()*.6, .2 + Math.random()*.6, Math.cos(a)*.03, Math.sin(a)*.03, S.fluidInk ? inkColor() : null]);
+      }
+      while (splats.length) splat(...splats.shift());
+      const tx = [1/SW, 1/SH];
+      run(P.curl, curlF, {v:T(vel.r.t), tx});
+      run(P.vort, vel.w, {v:T(vel.r.t), cu:T(curlF.t), curl:S.fluidCurl*.6, dt, tx}); vel.swap();
+      run(P.div, divg, {v:T(vel.r.t), tx});
+      run(P.scale, pres.w, {u:T(pres.r.t), k:.8, tx}); pres.swap();
+      for (let i = 0; i < 20; i++){ run(P.pres, pres.w, {p:T(pres.r.t), d:T(divg.t), tx}); pres.swap(); }
+      run(P.grad, vel.w, {p:T(pres.r.t), v:T(vel.r.t), tx}); vel.swap();
+      run(P.advect, vel.w, {vel:T(vel.r.t), src:T(vel.r.t), tgt:T(vel.r.t), dt, diss:.985, restore:0, tx}); vel.swap();
+      run(P.advect, dye.w, {vel:T(vel.r.t), src:T(dye.r.t), tgt:T(photoTex), dt, diss:1, restore:S.fluidRestore/100*.04, tx}); dye.swap();
+      run(P.copy, null, {u:T(dye.r.t)});
+    }
+  };
+}
+
+/* ---------- gestion des sources « créées » ---------- */
+function liveCanvas(){ const c = document.createElement('canvas'); const [w, h] = ARTBOARDS[S.artboard] || ARTBOARDS['1:1']; c.width = w; c.height = h; c.isLive = true; return c; }
+function liveTick(now){
+  if (!src || !src.isLive){ CREATE.raf = 0; return; }
+  CREATE.raf = requestAnimationFrame(liveTick);
+  if (CREATE.paused || comparing || busy) return;
+  if (now - CREATE.last < 1000/30) return;
+  const dt = CREATE.last ? Math.min(.1, (now - CREATE.last)/1000) : 1/30; CREATE.last = now;
+  CREATE.t += dt*(S.genSpeed/50);
+  try { src.update(CREATE.t); } catch (e){ console.error(e); }
+  render();
+}
+function setModeChipsOnly(m){ CREATE.mode = m; document.querySelectorAll('#srcChips .chip').forEach(c => c.classList.toggle('active', c.dataset.mode === m)); document.querySelectorAll('[data-cmode]').forEach(el => { el.hidden = !el.dataset.cmode.split(' ').includes(m); }); }
+function setMode(m){
+  CREATE.mode = m;
+  document.querySelectorAll('#srcChips .chip').forEach(c => c.classList.toggle('active', c.dataset.mode === m));
+  document.querySelectorAll('[data-cmode]').forEach(el => { el.hidden = !el.dataset.cmode.split(' ').includes(m); });
+  if (m === 'media'){ setSrc(CREATE.userSrc || DEMO); return; }
+  if ((m === 'gen' || m === 'text') && S.colorMode === 'source' && S.style !== 'none'){ S.colorMode = 'gradmap'; S.palette = 'phosphor'; S.contrast = Math.max(S.contrast, 20); syncUI(); }
+  let c = liveCanvas();
+  try {
+    if (m === 'gen'){ const eng = ENGINES[CREATE.engine](c.width, c.height), x = c.getContext('2d'); c.update = t => eng.draw(x, c.width, c.height, t); name = 'generatif-' + CREATE.engine; }
+    else if (m === 'text'){ const tx = makeTextSource(c.width, c.height), x = c.getContext('2d'); c.update = t => tx.draw(x, c.width, c.height, t); name = 'texte'; }
+    else if (m === 'look'){ const lk = makeLookSource(c, CREATE.look); if (!lk) throw new Error('WebGL indisponible'); c.update = t => lk.draw(t); name = 'look-' + CREATE.look; }
+    else if (m === 'fluid'){
+      const sim = makeFluidSim(c, CREATE.userSrc || DEMO); if (!sim) throw new Error('WebGL2 indisponible sur cet appareil');
+      c.update = t => sim.update(t); c.interactive = true; c.pointer = sim.pointer; c.reset = sim.reset; name = 'fluide';
+      toast('Glisse sur l\'image pour remuer ta photo');
+    }
+  } catch (e){ toast('Impossible : ' + (e.message || e)); setMode('media'); return; }
+  c.update(CREATE.t);
+  CREATE.last = 0; setSrc(c);
+  if (!CREATE.raf) CREATE.raf = requestAnimationFrame(liveTick);
+}
+// réaction au curseur : loupe + éclaircissement autour du pointeur (sur la source)
+function reactPre(pw, ph){
+  if (!S.react || !PTR.on) return;
+  const R = Math.min(pw, ph)*.2, cx = PTR.x*pw, cy = PTR.y*ph;
+  const x0 = Math.max(0, Math.floor(cx - R)), y0 = Math.max(0, Math.floor(cy - R)), x1 = Math.min(pw, Math.ceil(cx + R)), y1 = Math.min(ph, Math.ceil(cy + R));
+  const bw = x1 - x0, bh = y1 - y0; if (bw < 2 || bh < 2) return;
+  const s = preCtx.getImageData(x0, y0, bw, bh), d = preCtx.createImageData(bw, bh), sd = s.data, dd = d.data;
+  for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++){
+    const dx = x0 + x - cx, dy = y0 + y - cy, r = Math.hypot(dx, dy), di = (y*bw + x) << 2;
+    let sx = x, sy = y, k = 1;
+    if (r < R){ const f = r/R, nr = R*Math.pow(f, 1.6); sx = Math.round(cx - x0 + (r ? dx/r*nr : 0)); sy = Math.round(cy - y0 + (r ? dy/r*nr : 0)); k = 1 + .45*(1 - f); }
+    sx = Math.max(0, Math.min(bw - 1, sx)); sy = Math.max(0, Math.min(bh - 1, sy));
+    const si = (sy*bw + sx) << 2; dd[di] = sd[si]*k; dd[di+1] = sd[si+1]*k; dd[di+2] = sd[si+2]*k; dd[di+3] = 255;
+  }
+  preCtx.putImageData(d, x0, y0);
+}
+// exports texte : ANSI (couleurs de terminal) et bannière Markdown ; lien de réglages
+function exportANSI(){
+  if (lastText === null){ toast('Choisis un style texte (ASCII, Blocs ou Braille)'); return; }
+  const lines = lastText.split('\n'), rows = lines.length, cols = Math.max(1, ...lines.map(l => [...l].length));
+  prepare(); const d = sample(cols, rows); let out = '';
+  lines.forEach((l, y) => { const ch = [...l];
+    for (let x = 0; x < ch.length; x++){ const i = (y*cols + x) << 2, a = adj(d[i], d[i+1], d[i+2]); let L = lum(a[0], a[1], a[2]); if (S.invert) L = 1 - L;
+      const c = inkRGB(a[0], a[1], a[2], L); out += `\x1b[38;2;${c[0] | 0};${c[1] | 0};${c[2] | 0}m${ch[x]}`; }
+    out += '\x1b[0m\n'; });
+  download(new Blob([out], {type:'text/plain;charset=utf-8'}), `${name}-${S.style}.ans`);
+  if (!NATIVE) toast('Fichier ANSI exporté (à afficher avec « cat » dans un terminal)');
+}
+async function copyStr(t){ try { await navigator.clipboard.writeText(t); } catch { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); } }
+function copyMarkdown(){ if (lastText === null){ toast('Choisis un style texte (ASCII, Blocs ou Braille)'); return; } copyStr('```text\n' + lastText + '\n```'); toast('Bannière Markdown copiée'); }
+function copySettingsLink(){
+  const diff = new URLSearchParams();
+  for (const k in DEFAULTS) if (String(S[k]) !== String(DEFAULTS[k])) diff.set(k, S[k]);
+  diff.set('cm', CREATE.mode); diff.set('ce', CREATE.engine); diff.set('cl', CREATE.look); diff.set('cf', CREATE.fill);
+  history.replaceState(null, '', '#' + diff.toString()); copyStr(location.href); toast('Lien des réglages copié');
+}
+// réglages au chargement depuis le lien (#…)
+const HASH = new URLSearchParams(location.hash.slice(1));
+for (const [k, v] of HASH) if (k in DEFAULTS) S[k] = typeof DEFAULTS[k] === 'number' ? +v : typeof DEFAULTS[k] === 'boolean' ? v === 'true' : v;
+if (HASH.get('ce')) CREATE.engine = HASH.get('ce'); if (HASH.get('cl')) CREATE.look = HASH.get('cl'); if (HASH.get('cf')) CREATE.fill = HASH.get('cf');
+
+/* ---------- interface « Créer » ---------- */
+const chipRow = (box, list, cur, onPick) => { box.innerHTML = '';
+  for (const [id, label] of list){ const b = document.createElement('button'); b.className = 'chip' + (id === cur ? ' active' : ''); b.textContent = label;
+    b.onclick = () => { box.querySelectorAll('.chip').forEach(x => x.classList.toggle('active', x === b)); onPick(id); }; box.appendChild(b); } };
+chipRow($('#engChips'), ENGINE_LABELS, CREATE.engine, id => { CREATE.engine = id; setMode('gen'); });
+chipRow($('#fillChips'), FILL_LABELS, CREATE.fill, id => { CREATE.fill = id; if (CREATE.mode !== 'text') setMode('text'); });
+chipRow($('#lookChips'), LOOKS, CREATE.look, id => { CREATE.look = id; setMode('look'); });
+document.querySelectorAll('#srcChips .chip').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+document.querySelector('[data-k="artboard"]').addEventListener('input', () => { if (CREATE.mode !== 'media' && CREATE.mode !== 'fluid') setMode(CREATE.mode); });
+$('#pauseLive').onclick = () => { CREATE.paused = !CREATE.paused; $('#pauseLive').textContent = CREATE.paused ? 'Reprendre' : 'Pause'; };
+$('#fluidReset').onclick = () => { if (src && src.reset) src.reset(); };
+$('#ansiBtn').onclick = exportANSI; $('#mdBtn').onclick = copyMarkdown; $('#linkBtn').onclick = copySettingsLink;
+document.querySelectorAll('[data-cmode]').forEach(el => { el.hidden = !el.dataset.cmode.split(' ').includes('media'); });
+// pointeur : fluide (prioritaire sur les gestes mobiles) et réaction au curseur
+const stageNode = $('.stage');
+stageNode.addEventListener('pointerdown', e => { if (src && src.interactive && !e.target.closest('.dock, .top, button')){ e.stopImmediatePropagation(); try { stageNode.setPointerCapture(e.pointerId); } catch {} src.pointer('down', e); } }, {capture:true});
+stageNode.addEventListener('pointermove', e => {
+  if (src && src.interactive){ e.stopImmediatePropagation(); src.pointer('move', e); return; }
+  if (S.react){ const r = view.getBoundingClientRect(); PTR.x = (e.clientX - r.left)/r.width; PTR.y = (e.clientY - r.top)/r.height; PTR.on = PTR.x >= 0 && PTR.x <= 1 && PTR.y >= 0 && PTR.y <= 1; if (!(src && src.isLive) && !isPlayingVideo()) schedule(); }
+}, {capture:true});
+['pointerup', 'pointercancel'].forEach(ev => stageNode.addEventListener(ev, e => { if (src && src.interactive){ e.stopImmediatePropagation(); src.pointer('up', e); } }, {capture:true}));
+stageNode.addEventListener('pointerleave', () => { if (PTR.on){ PTR.on = false; if (!(src && src.isLive)) schedule(); } });
+// mobile : l'onglet « Créer » s'affiche dans la feuille du bas
+const createPane = $('#createPane'), createHome = {parent:createPane.parentNode, next:createPane.nextSibling};
+const _mountMobile = mountMobile;
+mountMobile = function(on){
+  _mountMobile(on);
+  if (on){ $('#mCreate').appendChild(createPane); createPane.hidden = false; }
+  else if (createPane.parentNode !== createHome.parent){ createHome.parent.insertBefore(createPane, createHome.next); createPane.hidden = !document.querySelector('.tab[data-tab=create]').classList.contains('active'); }
+};
+
 /* ---------- Version web installable (PWA) : marche hors-ligne une fois ajoutée à l'écran d'accueil ---------- */
 if ('serviceWorker' in navigator && location.protocol === 'https:' && !NATIVE){
   navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -2169,7 +2762,9 @@ if ('serviceWorker' in navigator && location.protocol === 'https:' && !NATIVE){
 }
 syncUI();
 mountMobile(MQ.matches);
-setSrc(makeDemo());
+const DEMO = makeDemo(); DEMO.isDemo = true;
+setSrc(DEMO);
+if (HASH.get('cm') && HASH.get('cm') !== 'media') setTimeout(() => setMode(HASH.get('cm')), 50);
 </script>
 </body>
 </html>
