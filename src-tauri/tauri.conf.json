@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "ASCII Local",
+  "version": "1.0.0",
+  "identifier": "io.github.asciilocal.studio",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "ASCII Local",
+        "width": 1360,
+        "height": 860,
+        "minWidth": 380,
+        "minHeight": 600,
+        "backgroundColor": "#09090b"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Photography",
+    "shortDescription": "Effets ASCII, dither, glitch et verre, 100 % hors-ligne",
+    "longDescription": "Transforme tes photos et vidéos en art ASCII, dither, halftone, glitch, verre… et anime-les en GIF. Tout est calculé sur ton ordinateur : aucune image n'est envoyée sur Internet.",
+    "copyright": "Licence MIT",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "10.15",
+      "signingIdentity": "-"
+    },
+    "windows": {
+      "webviewInstallMode": { "type": "embedBootstrapper" }
+    }
+  }
+}

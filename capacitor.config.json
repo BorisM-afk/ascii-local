@@ -1,0 +1,9 @@
+{
+  "appId": "io.github.asciilocal.studio",
+  "appName": "ASCII Local",
+  "webDir": "src",
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#09090b"
+  }
+}

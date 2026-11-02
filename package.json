@@ -1,0 +1,29 @@
+{
+  "name": "ascii-local",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Transforme tes photos et vidéos en art ASCII, dither, glitch, verre… 100 % hors-ligne. Windows, macOS, Android et web.",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build:desktop": "tauri build",
+    "icons": "tauri icon app-icon.png",
+    "android:init": "cap add android",
+    "android:sync": "cap sync android",
+    "android:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.0",
+    "@tauri-apps/cli": "^2.12.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,21 @@
+[package]
+name = "ascii-local"
+version = "1.0.0"
+description = "ASCII Local : effets ASCII, dither, glitch et verre 100 % hors-ligne"
+license = "MIT"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
