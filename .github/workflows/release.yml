@@ -86,7 +86,7 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - uses: android-actions/setup-android@v3
+      # le SDK Android est déjà installé sur les machines Ubuntu de GitHub (ANDROID_HOME)
 
       - run: npm install --no-audit --no-fund
 
