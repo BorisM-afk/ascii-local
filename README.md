@@ -104,6 +104,16 @@ capacitor.config.json          emballage Android avec Capacitor
 2. Ajoute‑la dans l'objet `STYLES`, puis dans `STYLE_GROUPS` pour qu'elle apparaisse dans la galerie.
 3. Pour qu'elle bouge en mode animation, utilise `ANIM.phase` (de 0 à 1 sur une boucle) quand `ANIM.on` est vrai.
 
+## Signature du code
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+Les installateurs Windows sont construits par GitHub Actions puis signés via SignPath. Détails, rôles de l'équipe et politique de confidentialité : [CODE_SIGNING.md](CODE_SIGNING.md).
+
+## Contribuer
+
+Les contributions sont les bienvenues par pull request. Merci de respecter le [code de conduite](CODE_OF_CONDUCT.md).
+
 ## Licence
 
 [MIT](LICENSE) — utilise, modifie et redistribue librement.
