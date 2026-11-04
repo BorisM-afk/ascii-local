@@ -766,22 +766,53 @@ function bayerMatrix(n){
 const BAYER = {2:bayerMatrix(2), 4:bayerMatrix(4), 8:bayerMatrix(8)};
 const BR = [[0x01,0x08],[0x02,0x10],[0x04,0x20],[0x40,0x80]]; // points braille
 
-let P = {}, FG, BG, PAL, PALS;
+let P = {}, FG, BG, PAL, PALS, FG_CSS = '#39ff8a';
+// Tables précalculées (LUT) : contraste, luminosité, gamma et dégradés sont calculés 1 fois par rendu
+// au lieu de plusieurs Math.pow et allocations par pixel.
+const CB = new Float32Array(256), GM = new Float32Array(1025);
+const GRAD_CSS = new Array(256), GRAD_RGB = new Array(256), GMAP_CSS = new Array(256), GMAP_RGB = new Array(256), THERM_RGB = new Array(256);
+for (let i = 0; i < 256; i++) THERM_RGB[i] = lerpStops(THERMAL, i/255);
 function prepare(){
   const c = (100 + S.contrast) / 100;
   P = {k:c*c, br:S.brightness*1.6, sat:S.saturation/100, gm:100/S.gamma};
-  FG = hex(S.fg); BG = hex(S.bg);
+  for (let v = 0; v < 256; v++) CB[v] = (v - 128)*P.k + 128 + P.br;
+  if (P.gm !== 1) for (let i = 0; i <= 1024; i++) GM[i] = 255*Math.pow(i/1024, P.gm);
+  FG = hex(S.fg); BG = hex(S.bg); FG_CSS = css(FG);
   PAL = S.palette === 'mono' ? [BG, FG] : PALETTES[S.palette].map(hex);
   PALS = PAL.slice().sort((p, q) => lum(...p) - lum(...q));
+  for (let i = 0; i < 256; i++){
+    const L = i/255;
+    const gr = [BG[0] + (FG[0]-BG[0])*L, BG[1] + (FG[1]-BG[1])*L, BG[2] + (FG[2]-BG[2])*L];
+    GRAD_RGB[i] = gr; GRAD_CSS[i] = css(gr);
+    const gm = lerpStops(PALS, L);
+    GMAP_RGB[i] = gm; GMAP_CSS[i] = css(gm);
+  }
 }
 const A = [0,0,0];
 function adj(r,g,b){
-  r = (r-128)*P.k + 128 + P.br; g = (g-128)*P.k + 128 + P.br; b = (b-128)*P.k + 128 + P.br;
+  r = CB[r]; g = CB[g]; b = CB[b];
   const l = .299*r + .587*g + .114*b;
   r = l + (r-l)*P.sat; g = l + (g-l)*P.sat; b = l + (b-l)*P.sat;
   r = r < 0 ? 0 : r > 255 ? 255 : r; g = g < 0 ? 0 : g > 255 ? 255 : g; b = b < 0 ? 0 : b > 255 ? 255 : b;
-  if (P.gm !== 1){ r = 255*Math.pow(r/255, P.gm); g = 255*Math.pow(g/255, P.gm); b = 255*Math.pow(b/255, P.gm); }
+  if (P.gm !== 1){ r = GM[(r*4 + .5) | 0]; g = GM[(g*4 + .5) | 0]; b = GM[(b*4 + .5) | 0]; }
   A[0] = r; A[1] = g; A[2] = b; return A;
+}
+function fit(c, x, w, h){
+  if (c.width !== w || c.height !== h){ c.width = w; c.height = h; return; }
+  if (x){ x.setTransform(1, 0, 0, 1, 0, 0); x.globalAlpha = 1; x.globalCompositeOperation = 'source-over'; x.filter = 'none'; x.clearRect(0, 0, w, h); }
+}
+const blCan = document.createElement('canvas'), blCtx = blCan.getContext('2d');
+function drawBlurred(dstCtx, srcCan, W, H, px){
+  if (px <= .5 || blCtx.filter === undefined){ dstCtx.drawImage(srcCan, 0, 0, W, H); return; }
+  const k = Math.max(1, Math.min(8, px/3.5));
+  const bw = Math.max(1, Math.round(W/k)), bh = Math.max(1, Math.round(H/k)), r = px/k;
+  const pad = Math.ceil(r*2);
+  fit(blCan, blCtx, bw + pad*2, bh + pad*2);
+  blCtx.filter = `blur(${Math.max(.5, r)}px)`;
+  blCtx.drawImage(srcCan, pad, pad, bw, bh);
+  blCtx.filter = 'none';
+  dstCtx.imageSmoothingEnabled = true;
+  dstCtx.drawImage(blCan, pad, pad, bw, bh, 0, 0, W, H);
 }
 const lum = (r,g,b) => (.299*r + .587*g + .114*b) / 255;
 function nearest(pal, r, g, b){
@@ -793,10 +824,19 @@ const I = [0,0,0];
 function inkRGB(r,g,b,L){
   switch (S.colorMode){
     case 'mono': return FG;
-    case 'gradient': I[0] = BG[0] + (FG[0]-BG[0])*L; I[1] = BG[1] + (FG[1]-BG[1])*L; I[2] = BG[2] + (FG[2]-BG[2])*L; return I;
+    case 'gradient': return GRAD_RGB[(L*255 + .5) | 0];
     case 'palette': return nearest(PAL, r, g, b);
-    case 'gradmap': return lerpStops(PALS, L);
+    case 'gradmap': return GMAP_RGB[(L*255 + .5) | 0];
     default: I[0] = r; I[1] = g; I[2] = b; return I;
+  }
+}
+function inkCSS(r,g,b,L){
+  switch (S.colorMode){
+    case 'mono': return FG_CSS;
+    case 'gradient': return GRAD_CSS[(L*255 + .5) | 0];
+    case 'gradmap': return GMAP_CSS[(L*255 + .5) | 0];
+    case 'palette': return css(nearest(PAL, r, g, b));
+    default: return `rgb(${r|0},${g|0},${b|0})`;
   }
 }
 
@@ -808,12 +848,18 @@ const sCan = document.createElement('canvas'), sCtx = sCan.getContext('2d', {wil
 const mCan = document.createElement('canvas'), mCtx = mCan.getContext('2d');
 /* Pré-traitement : la source est redessinée, déformée et floutée avant d'être stylisée */
 const preCan = document.createElement('canvas'), preCtx = preCan.getContext('2d', {willReadFrequently:true});
-let SRC = null;
-const cloneCan = c => { const k = document.createElement('canvas'); k.width = c.width; k.height = c.height; k.getContext('2d').drawImage(c, 0, 0); return k; };
+const auxA = document.createElement('canvas'), auxACtx = auxA.getContext('2d');
+const auxB = document.createElement('canvas'), auxBCtx = auxB.getContext('2d');
+let SRC = null, preKey = '', distOut = null, distMapKey = '', distMap = null, sampleKey = '', sampleData = null;
 function buildPre(W, H){
   const pw = Math.min(W, 1600), ph = Math.max(1, Math.round(pw*H/W));
-  preCan.width = pw; preCan.height = ph;
-  preCtx.filter = 'none'; preCtx.globalAlpha = 1;
+  const dynSrc = (src && src.isLive) || isPlayingVideo();
+  const animDist = ANIM.on && (S.distort === 'twirl' || S.distort === 'ripple');
+  const ptrOn = S.react && PTR.on;
+  const key = (!dynSrc && !animDist && !ptrOn) ? `${src.src || 'c'}|${pw}x${ph}|${S.distort}:${S.distortAmt}|${S.blur}:${S.blurAmt}` : '';
+  if (key && key === preKey && SRC === preCan) return;
+  preKey = key; sampleKey = '';
+  fit(preCan, preCtx, pw, ph);
   preCtx.drawImage(src, 0, 0, pw, ph);
   if (S.distort !== 'none') distortPre(pw, ph);
   if (S.blur !== 'none') blurPre(pw, ph);
@@ -821,57 +867,103 @@ function buildPre(W, H){
   SRC = preCan;
 }
 function distortPre(w, h){
-  const s = preCtx.getImageData(0, 0, w, h).data, out = preCtx.createImageData(w, h), d = out.data;
-  const cx = w/2, cy = h/2, R = Math.min(w, h)/2, a = S.distortAmt/100, mode = S.distort;
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
-    const dx = x - cx, dy = y - cy, r = Math.hypot(dx, dy);
-    let sx = x, sy = y;
-    if (mode === 'twirl'){ if (r < R){ const t = 1 - r/R, ang = Math.atan2(dy, dx) + t*t*a*6*(ANIM.on ? 1 + .35*Math.sin(ANIM.phase*6.2832*S.animSpeed) : 1); sx = cx + r*Math.cos(ang); sy = cy + r*Math.sin(ang); } }
-    else if (mode === 'spherize' || mode === 'pinch'){
-      if (r < R && r > 0){ const f = r/R, nr = R*Math.pow(f, mode === 'spherize' ? 1 + a*1.5 : 1/(1 + a*1.5)); sx = cx + dx/r*nr; sy = cy + dy/r*nr; } }
-    else if (mode === 'ripple'){ const amp = a*w*.02, wl = w/14, ph = ANIM.on ? ANIM.phase*6.2832*S.animSpeed : 0; sx = x + amp*Math.sin(2*Math.PI*y/wl + ph); sy = y + amp*Math.sin(2*Math.PI*x/wl + ph); }
-    else if (mode === 'zigzag'){ if (r < R){ const amp = a*w*.015*(1 - r/R); const k = amp*Math.sin(r/(w/60)); sx = x + (r ? dx/r : 0)*k; sy = y + (r ? dy/r : 0)*k; } }
-    else if (mode === 'polar'){ const ang = x/w*2*Math.PI, rr = y/h*Math.hypot(cx, cy); sx = cx + rr*Math.cos(ang); sy = cy + rr*Math.sin(ang); }
-    else if (mode === 'shear'){ sx = x + (y - cy)*a*.6; }
-    sx = Math.round(sx); sy = Math.round(sy);
-    if (mode === 'shear' || mode === 'ripple'){ sx = ((sx % w) + w) % w; } // bouclage horizontal
-    sx = sx < 0 ? 0 : sx >= w ? w-1 : sx; sy = sy < 0 ? 0 : sy >= h ? h-1 : sy;
-    const di = (y*w + x) << 2, si = (sy*w + sx) << 2;
-    d[di] = s[si]; d[di+1] = s[si+1]; d[di+2] = s[si+2]; d[di+3] = 255;
+  const s32 = new Uint32Array(preCtx.getImageData(0, 0, w, h).data.buffer);
+  if (!distOut || distOut.width !== w || distOut.height !== h) distOut = preCtx.createImageData(w, h);
+  const d32 = new Uint32Array(distOut.data.buffer);
+  const cx = w/2, cy = h/2, R = Math.min(w, h)/2, R2 = R*R, invR = 1/R, a = S.distortAmt/100, mode = S.distort;
+  if (mode === 'ripple'){
+    const amp = a*w*.02, k = 2*Math.PI/(w/14), ph = ANIM.on ? ANIM.phase*6.2832*S.animSpeed : 0;
+    const dxRow = new Int32Array(h), dyCol = new Int32Array(w);
+    for (let y = 0; y < h; y++) dxRow[y] = Math.round(amp*Math.sin(k*y + ph));
+    for (let x = 0; x < w; x++) dyCol[x] = Math.round(amp*Math.sin(k*x + ph));
+    for (let y = 0; y < h; y++){
+      const dx = dxRow[y], row = y*w;
+      for (let x = 0; x < w; x++){
+        let sx = (x + dx) % w; if (sx < 0) sx += w;
+        let sy = y + dyCol[x]; sy = sy < 0 ? 0 : sy >= h ? h-1 : sy;
+        d32[row + x] = s32[sy*w + sx];
+      }
+    }
+    preCtx.putImageData(distOut, 0, 0); return;
   }
-  preCtx.putImageData(out, 0, 0);
+  if (mode === 'shear'){
+    for (let y = 0; y < h; y++){
+      const dx = Math.round((y - cy)*a*.6), row = y*w;
+      for (let x = 0; x < w; x++){
+        let sx = (x + dx) % w; if (sx < 0) sx += w;
+        d32[row + x] = s32[row + sx];
+      }
+    }
+    preCtx.putImageData(distOut, 0, 0); return;
+  }
+  const twirlK = a*6*(ANIM.on ? 1 + .35*Math.sin(ANIM.phase*6.2832*S.animSpeed) : 1);
+  const mKey = `${w}x${h}|${mode}|${a}|${mode === 'twirl' ? twirlK.toFixed(4) : 0}`;
+  if (mKey !== distMapKey || !distMap || distMap.length !== w*h){
+    distMapKey = mKey;
+    if (!distMap || distMap.length !== w*h) distMap = new Int32Array(w*h);
+    const exp = mode === 'spherize' ? 1 + a*1.5 : 1/(1 + a*1.5);
+    const zigAmp = a*w*.015, zigWl = 60/w, polarR = Math.hypot(cx, cy)/h, polarK = 2*Math.PI/w;
+    for (let y = 0; y < h; y++){
+      const dy = y - cy, dy2 = dy*dy, row = y*w;
+      for (let x = 0; x < w; x++){
+        const dx = x - cx, r2 = dx*dx + dy2;
+        let sx = x, sy = y;
+        if (mode === 'twirl'){
+          if (r2 < R2){ const r = Math.sqrt(r2), t = 1 - r*invR, ang = Math.atan2(dy, dx) + t*t*twirlK; sx = Math.round(cx + r*Math.cos(ang)); sy = Math.round(cy + r*Math.sin(ang)); }
+        } else if (mode === 'spherize' || mode === 'pinch'){
+          if (r2 < R2 && r2 > 0){ const r = Math.sqrt(r2), nr = R*Math.pow(r*invR, exp)/r; sx = Math.round(cx + dx*nr); sy = Math.round(cy + dy*nr); }
+        } else if (mode === 'zigzag'){
+          if (r2 < R2){ const r = Math.sqrt(r2), k = zigAmp*(1 - r*invR)*Math.sin(r*zigWl)/(r || 1); sx = Math.round(x + dx*k); sy = Math.round(y + dy*k); }
+        } else if (mode === 'polar'){
+          const ang = x*polarK, rr = y*polarR; sx = Math.round(cx + rr*Math.cos(ang)); sy = Math.round(cy + rr*Math.sin(ang));
+        }
+        sx = sx < 0 ? 0 : sx >= w ? w-1 : sx; sy = sy < 0 ? 0 : sy >= h ? h-1 : sy;
+        distMap[row + x] = sy*w + sx;
+      }
+    }
+  }
+  const N = w*h;
+  for (let p = 0; p < N; p++) d32[p] = s32[distMap[p]];
+  preCtx.putImageData(distOut, 0, 0);
 }
 function blurPre(w, h){
-  const px = S.blurAmt/100*w/60, orig = cloneCan(preCan);
+  const px = S.blurAmt/100*w/60;
+  fit(auxA, auxACtx, w, h); auxACtx.drawImage(preCan, 0, 0);
   if (S.blur === 'motion'){
     preCtx.clearRect(0, 0, w, h); const n = 12;
-    for (let i = 0; i < n; i++){ preCtx.globalAlpha = 1/(i + 1); preCtx.drawImage(orig, (i/(n-1) - .5)*px*4, 0); }
+    for (let i = 0; i < n; i++){ preCtx.globalAlpha = 1/(i + 1); preCtx.drawImage(auxA, (i/(n-1) - .5)*px*4, 0); }
     preCtx.globalAlpha = 1; return;
   }
-  if (preCtx.filter === undefined) return; // Safari ancien : pas de flou canvas
-  preCtx.filter = `blur(${Math.max(.5, px)}px)`; preCtx.drawImage(orig, 0, 0); preCtx.filter = 'none';
+  preCtx.clearRect(0, 0, w, h);
+  drawBlurred(preCtx, auxA, w, h, Math.max(.5, px));
   if (S.blur === 'tiltshift'){ // bande centrale nette
-    const m = cloneCan(orig), mc = m.getContext('2d'), g = mc.createLinearGradient(0, 0, 0, h);
+    fit(auxB, auxBCtx, w, h); auxBCtx.drawImage(auxA, 0, 0);
+    const g = auxBCtx.createLinearGradient(0, 0, 0, h);
     g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(.38, '#000'); g.addColorStop(.62, '#000'); g.addColorStop(1, 'rgba(0,0,0,0)');
-    mc.globalCompositeOperation = 'destination-in'; mc.fillStyle = g; mc.fillRect(0, 0, w, h);
-    preCtx.drawImage(m, 0, 0);
+    auxBCtx.globalCompositeOperation = 'destination-in'; auxBCtx.fillStyle = g; auxBCtx.fillRect(0, 0, w, h);
+    preCtx.drawImage(auxB, 0, 0);
   } else if (S.blur === 'radial'){ // flou sur les bords
-    const m = cloneCan(orig), mc = m.getContext('2d'), g = mc.createRadialGradient(w/2, h/2, Math.min(w, h)*.15, w/2, h/2, Math.min(w, h)*.55);
+    fit(auxB, auxBCtx, w, h); auxBCtx.drawImage(auxA, 0, 0);
+    const g = auxBCtx.createRadialGradient(w/2, h/2, Math.min(w, h)*.15, w/2, h/2, Math.min(w, h)*.55);
     g.addColorStop(0, '#000'); g.addColorStop(1, 'rgba(0,0,0,0)');
-    mc.globalCompositeOperation = 'destination-in'; mc.fillStyle = g; mc.fillRect(0, 0, w, h);
-    preCtx.drawImage(m, 0, 0);
+    auxBCtx.globalCompositeOperation = 'destination-in'; auxBCtx.fillStyle = g; auxBCtx.fillRect(0, 0, w, h);
+    preCtx.drawImage(auxB, 0, 0);
   }
 }
 function sample(cols, rows){
+  const sKey = preKey ? `${preKey}|${cols}x${rows}` : '';
+  if (sKey && sKey === sampleKey && sampleData) return sampleData;
   const sw = SRC.width, sh = SRC.height; let source = SRC;
   if (sw > cols*3){ // réduction en deux temps : moins d'aliasing
     const mw = cols*3, mh = Math.max(1, Math.round(mw*sh/sw));
-    mCan.width = mw; mCan.height = mh; mCtx.imageSmoothingQuality = 'high'; mCtx.drawImage(SRC, 0, 0, mw, mh); source = mCan;
+    fit(mCan, mCtx, mw, mh); mCtx.imageSmoothingQuality = 'high'; mCtx.drawImage(SRC, 0, 0, mw, mh); source = mCan;
   }
-  sCan.width = cols; sCan.height = rows;
+  fit(sCan, sCtx, cols, rows);
   sCtx.imageSmoothingEnabled = true; sCtx.imageSmoothingQuality = 'high';
   sCtx.drawImage(source, 0, 0, cols, rows);
-  return sCtx.getImageData(0, 0, cols, rows).data;
+  sampleData = sCtx.getImageData(0, 0, cols, rows).data;
+  sampleKey = sKey;
+  return sampleData;
 }
 function eachCell(d, cols, rows, fn){
   for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++){
@@ -887,16 +979,71 @@ function charset(){
   if (S.charset === 'custom') return S.customChars.length ? S.customChars : CHARSETS.standard;
   return CHARSETS[S.charset];
 }
+// Cache de glyphes rasterisés : chaque caractère n'est dessiné par la police qu'une seule fois par taille,
+// puis ses pixels actifs (dx, dy, alpha) sont copiés directement en mémoire (~15× plus rapide que 20 000 fillText).
+const gCan = document.createElement('canvas'), gCtx = gCan.getContext('2d', {willReadFrequently:true});
+let glyphFont = '', glyphMap = new Map(), txtImg = null;
+function getGlyph(chr, fs, weight){
+  const fk = `${weight}|${fs}`;
+  if (fk !== glyphFont){ glyphFont = fk; glyphMap.clear(); }
+  let g = glyphMap.get(chr); if (g) return g;
+  const gw = Math.max(4, Math.ceil(fs) + 2), gh = Math.max(4, Math.ceil(fs*1.3) + 2);
+  fit(gCan, gCtx, gw, gh);
+  gCtx.font = `${weight} ${fs}px ${MONO}`; gCtx.textBaseline = 'top'; gCtx.fillStyle = '#fff';
+  gCtx.fillText(chr, 0, 0);
+  const d = gCtx.getImageData(0, 0, gw, gh).data;
+  const dx = [], dy = [], al = [];
+  for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++){
+    const a = d[((y*gw + x) << 2) + 3];
+    if (a > 4){ dx.push(x); dy.push(y); al.push(a); }
+  }
+  g = {dx:new Uint8Array(dx), dy:new Uint8Array(dy), al:new Uint8Array(al), gw, gh, n:al.length};
+  glyphMap.set(chr, g); return g;
+}
 function textStyle(o, W, H, sc){
   const fs = Math.max(3, S.cell*sc), cw = fs*.6, chH = fs;
   const cols = Math.ceil(W/cw), rows = Math.ceil(H/chH);
-  o.font = `${S.weight} ${fs}px ${MONO}`; o.textBaseline = 'top';
-  const mono = S.colorMode === 'mono'; if (mono) o.fillStyle = S.fg;
-  const lines = new Array(rows);
+  const direct = S.backdrop === 'solid' && S.layerOpacity === 100 && S.layerBlend === 'source-over';
+  if (!txtImg || txtImg.width !== W || txtImg.height !== H) txtImg = o.createImageData(W, H);
+  const out = txtImg.data, u32 = new Uint32Array(out.buffer);
+  if (direct) u32.fill((255 << 24) | ((BG[2] & 255) << 16) | ((BG[1] & 255) << 8) | (BG[0] & 255));
+  else u32.fill(0);
+  const stamp = (g, x0, y0, cr, cg, cb) => {
+    const N = g.n; if (!N) return;
+    const dx = g.dx, dy = g.dy, al = g.al;
+    if (x0 >= 0 && y0 >= 0 && x0 + g.gw <= W && y0 + g.gh <= H){
+      const base = y0*W + x0;
+      if (direct){
+        for (let k = 0; k < N; k++){
+          const p = (base + dy[k]*W + dx[k]) << 2, a = al[k];
+          out[p]   += ((cr - out[p])*a) >> 8;
+          out[p+1] += ((cg - out[p+1])*a) >> 8;
+          out[p+2] += ((cb - out[p+2])*a) >> 8;
+        }
+      } else {
+        for (let k = 0; k < N; k++){
+          const p = (base + dy[k]*W + dx[k]) << 2, a = al[k];
+          if (a >= out[p+3]){ out[p] = cr; out[p+1] = cg; out[p+2] = cb; out[p+3] = a; }
+        }
+      }
+    } else {
+      for (let k = 0; k < N; k++){
+        const px = x0 + dx[k], py = y0 + dy[k];
+        if (px < 0 || py < 0 || px >= W || py >= H) continue;
+        const p = (py*W + px) << 2, a = al[k];
+        if (direct){
+          out[p]   += ((cr - out[p])*a) >> 8;
+          out[p+1] += ((cg - out[p+1])*a) >> 8;
+          out[p+2] += ((cb - out[p+2])*a) >> 8;
+        } else if (a >= out[p+3]){ out[p] = cr; out[p+1] = cg; out[p+2] = cb; out[p+3] = a; }
+      }
+    }
+  };
+  const mono = S.colorMode === 'mono', wt = S.weight, lines = new Array(rows);
   if (S.style === 'braille'){
     const c2 = cols*2, d = sample(c2, rows*4), bm = BAYER[4];
     for (let y = 0; y < rows; y++){
-      let line = '';
+      let line = ''; const y0 = Math.round(y*chH);
       for (let x = 0; x < cols; x++){
         let bits = 0, R = 0, G = 0, B = 0, LL = 0;
         for (let dy = 0; dy < 4; dy++) for (let dx = 0; dx < 2; dx++){
@@ -907,23 +1054,32 @@ function textStyle(o, W, H, sc){
           if (L > th) bits |= BR[dy][dx];
         }
         const chr = String.fromCharCode(0x2800 + bits); line += chr;
-        if (bits){ if (!mono) o.fillStyle = css(inkRGB(R/8, G/8, B/8, LL/8)); o.fillText(chr, x*cw, y*chH); }
+        if (bits){
+          const col = mono ? FG : inkRGB(R*.125, G*.125, B*.125, LL*.125);
+          stamp(getGlyph(chr, fs, wt), Math.round(x*cw), y0, col[0], col[1], col[2]);
+        }
       }
       lines[y] = line;
     }
   } else {
     const chars = [...charset()], n = chars.length, d = sample(cols, rows);
-    const buf = [], rng = mulberry32(S.seed + (ANIM.on ? ANIM.frame*7919 : 0)), flick = ANIM.on ? S.animAmt/100*.15 : 0;
+    const glyphs = chars.map(c => c === ' ' ? null : getGlyph(c, fs, wt));
+    const buf = new Array(cols), rng = mulberry32(S.seed + (ANIM.on ? ANIM.frame*7919 : 0)), flick = ANIM.on ? S.animAmt/100*.15 : 0;
     eachCell(d, cols, rows, (x, y, r, g, b, L) => {
-      if (x === 0) buf.length = 0;
-      let chr = chars[Math.min(n-1, Math.floor(L*n))];
-      if (S.coverage < 100 && rng()*100 > S.coverage) chr = ' ';
-      else if ((S.randomChars || rng() < flick) && chr !== ' ' && n > 1) chr = chars[1 + Math.floor(rng()*(n-1))];
-      buf.push(chr);
-      if (chr !== ' '){ if (!mono) o.fillStyle = css(inkRGB(r, g, b, L)); o.fillText(chr, x*cw, y*chH); }
+      let ci = Math.min(n-1, (L*n) | 0);
+      if (S.coverage < 100 && rng()*100 > S.coverage) ci = 0;
+      else if ((S.randomChars || rng() < flick) && chars[ci] !== ' ' && n > 1) ci = 1 + ((rng()*(n-1)) | 0);
+      const chr = chars[ci]; buf[x] = chr;
+      const glp = glyphs[ci];
+      if (glp){
+        const col = mono ? FG : inkRGB(r, g, b, L);
+        stamp(glp, Math.round(x*cw), Math.round(y*chH), col[0], col[1], col[2]);
+      }
       if (x === cols-1) lines[y] = buf.join('');
     });
   }
+  if (direct) o.putImageData(txtImg, 0, 0);
+  else { fit(tCan, null, W, H); tCtx.putImageData(txtImg, 0, 0); o.drawImage(tCan, 0, 0); }
   lastText = lines.map(l => l.replace(/ +$/, '')).join('\n');
 }
 
@@ -931,25 +1087,38 @@ function textStyle(o, W, H, sc){
 function shapeStyle(o, W, H, sc){
   const c = Math.max(2, S.cell*sc), cols = Math.ceil(W/c), rows = Math.ceil(H/c), d = sample(cols, rows);
   const rng = mulberry32(S.seed), gap = S.gap*sc, st = S.style;
-  const baseA = o.globalAlpha, DM = st === 'dotmatrix' ? PAL.slice().sort((p, q) => lum(...p) - lum(...q)) : null;
+  const baseA = o.globalAlpha, DM = st === 'dotmatrix' ? PALS : null;
+  if (st === 'dotmatrix'){
+    const n = DM.length, buckets = Array.from({length:n}, () => []), s = c*.8, pad = (c - s)/2;
+    const dark0 = lum(DM[0][0], DM[0][1], DM[0][2]) < .06;
+    const A = ANIM.on ? S.animAmt/100 : 0, ph = ANIM.on ? ANIM.phase*S.animSpeed : 0;
+    const rowBoost = new Float32Array(rows);
+    if (ANIM.on) for (let y = 0; y < rows; y++){ let dy = (y/rows - ph) % 1; if (dy < 0) dy += 1; dy = Math.min(dy, 1 - dy); rowBoost[y] = A*.35*Math.exp(-dy*dy*400); }
+    eachCell(d, cols, rows, (x, y, r, g, b, L) => {
+      if (S.coverage < 100 && rng()*100 > S.coverage) return;
+      let LL = L;
+      if (ANIM.on){
+        LL = Math.min(1, LL + rowBoost[y]) + A*.12*Math.sin(6.2832*(ph*2 + ((x*7349 ^ y*3011) % 97)/97));
+      }
+      const t = LL*(n - 1) + (S.dither === 'none' ? 0 : (BAYER[4][y & 3][x & 3] - .5)*Math.min(1, LL*5));
+      const qi = Math.max(0, Math.min(n - 1, Math.round(t)));
+      if (qi === 0 && dark0) return;
+      buckets[qi].push(x*c + pad, y*c + pad);
+    });
+    for (let qi = 0; qi < n; qi++){
+      const b = buckets[qi]; if (!b.length) continue;
+      o.fillStyle = css(DM[qi]); o.beginPath();
+      for (let i = 0; i < b.length; i += 2) o.rect(b[i], b[i+1], s, s);
+      o.fill();
+    }
+    return;
+  }
+  let lastFill = '';
   eachCell(d, cols, rows, (x, y, r, g, b, L) => {
     if (S.coverage < 100 && rng()*100 > S.coverage) return;
     const X = x*c, Y = y*c, cx = X + c/2, cy = Y + c/2, col = inkRGB(r, g, b, L), D = 1 - L;
-    o.fillStyle = css(col);
+    const cs = inkCSS(r, g, b, L); if (cs !== lastFill){ o.fillStyle = lastFill = cs; }
     switch (st){
-      case 'dotmatrix': { // LED carrées : luminance → palette tramée (noir = LED éteinte)
-        let LL = L;
-        if (ANIM.on){
-          const A = S.animAmt/100, ph = ANIM.phase*S.animSpeed;
-          let dy = (y/rows - ph) % 1; if (dy < 0) dy += 1; dy = Math.min(dy, 1 - dy);
-          LL = Math.min(1, LL + A*.35*Math.exp(-dy*dy*400));
-          LL += A*.12*Math.sin(6.2832*(ph*2 + ((x*7349 ^ y*3011) % 97)/97));
-        }
-        const n = DM.length, t = LL*(n - 1) + (S.dither === 'none' ? 0 : (BAYER[4][y & 3][x & 3] - .5)*Math.min(1, LL*5)); // pas de bruit dans les noirs
-        const q = DM[Math.max(0, Math.min(n - 1, Math.round(t)))];
-        if (q === DM[0] && lum(q[0], q[1], q[2]) < .06) break;
-        o.fillStyle = css(q); const s = c*.8; o.fillRect(X + (c - s)/2, Y + (c - s)/2, s, s); break;
-      }
       case 'diagonal': { const t = L*c*.7; if (t > .3){ o.strokeStyle = o.fillStyle; o.lineWidth = t; o.lineCap = 'square'; o.beginPath(); o.moveTo(X, Y + c); o.lineTo(X + c, Y); o.stroke(); } break; }
       case 'mixed': {
         if (L < .08) break;
@@ -1008,17 +1177,20 @@ function shapeStyle(o, W, H, sc){
 
 /* ---------- Pixel art & dither ---------- */
 const tCan = document.createElement('canvas'), tCtx = tCan.getContext('2d');
+let pixF = null, pixImg = null;
 function pixelStyle(o, W, H, sc){
   const c = Math.max(1, S.cell*sc), cols = Math.ceil(W/c), rows = Math.ceil(H/c), d = sample(cols, rows), N = cols*rows;
-  const f = new Float32Array(N*3);
+  if (!pixF || pixF.length < N*3) pixF = new Float32Array(N*3);
+  const f = pixF;
   for (let p = 0; p < N; p++){
     const i = p << 2, a = adj(d[i], d[i+1], d[i+2]);
     f[p*3]   = S.invert ? 255 - a[0] : a[0];
     f[p*3+1] = S.invert ? 255 - a[1] : a[1];
     f[p*3+2] = S.invert ? 255 - a[2] : a[2];
   }
-  tCan.width = cols; tCan.height = rows;
-  const img = tCtx.createImageData(cols, rows), out = img.data;
+  fit(tCan, null, cols, rows);
+  if (!pixImg || pixImg.width !== cols || pixImg.height !== rows) pixImg = tCtx.createImageData(cols, rows);
+  const img = pixImg, out = img.data;
   const put = (p, q) => { const i = p << 2; out[i] = q[0]; out[i+1] = q[1]; out[i+2] = q[2]; out[i+3] = 255; };
   if (S.style === 'pixel'){
     for (let p = 0; p < N; p++){ const r = f[p*3], g = f[p*3+1], b = f[p*3+2]; put(p, inkRGB(r, g, b, lum(r, g, b))); }
@@ -1051,38 +1223,55 @@ function pixelStyle(o, W, H, sc){
 /* ---------- Glitch machine : traînées lumineuses directionnelles + lignes de contour ---------- */
 const smA = document.createElement('canvas'), smACtx = smA.getContext('2d', {willReadFrequently:true});
 const smB = document.createElement('canvas'), smBCtx = smB.getContext('2d', {willReadFrequently:true});
+const smLUT = new Uint8Array(1025*3), smF = new Float32Array(1025);
 function smearStyle(o, W, H, sc){
-  const k = Math.min(1, 1100/Math.max(SRC.width, SRC.height));
+  const maxDim = ANIM.on || isPlayingVideo() ? 860 : 1100;
+  const k = Math.min(1, maxDim/Math.max(SRC.width, SRC.height));
   const w = Math.max(1, Math.round(SRC.width*k)), h = Math.max(1, Math.round(SRC.height*k));
-  smA.width = w; smA.height = h; smACtx.drawImage(SRC, 0, 0, w, h);
-  // 1) mise en couleur (gradient map) + fines lignes qui suivent les contours de lumière
+  fit(smA, smACtx, w, h); smACtx.drawImage(SRC, 0, 0, w, h);
+  // 1) mise en couleur (gradient map) + fines lignes qui suivent les contours de lumière (précalculées sur 1025 niveaux)
   const img = smACtx.getImageData(0, 0, w, h), d = img.data;
-  const stops = PAL.slice().sort((p, q) => lum(...p) - lum(...q)), ct = S.contour/100;
-  for (let p = 0; p < w*h; p++){
+  const ct = S.contour/100, phAnim = ANIM.on ? ANIM.phase*2*S.animSpeed : 0, useLUT = S.colorMode === 'palette' || S.colorMode === 'mono' || S.colorMode === 'gradient';
+  for (let j = 0; j <= 1024; j++){
+    let L = j/1024, f = 1;
+    if (ct > 0){ const u = 1 - (.5 + .5*Math.sin((L*18 + phAnim)*6.2832)), u2 = u*u; f = 1 - ct*.75*u2*u2*Math.min(1, L*3); L *= f; }
+    smF[j] = f;
+    if (useLUT){
+      const q = S.colorMode === 'palette' ? lerpStops(PALS, L) : [BG[0] + (FG[0]-BG[0])*L, BG[1] + (FG[1]-BG[1])*L, BG[2] + (FG[2]-BG[2])*L];
+      smLUT[j*3] = q[0]; smLUT[j*3+1] = q[1]; smLUT[j*3+2] = q[2];
+    }
+  }
+  const N = w*h, inv = S.invert;
+  for (let p = 0; p < N; p++){
     const i = p << 2, a = adj(d[i], d[i+1], d[i+2]);
-    let r = a[0], g = a[1], b = a[2], L = lum(r, g, b);
-    if (S.invert){ L = 1 - L; r = 255 - r; g = 255 - g; b = 255 - b; }
-    if (ct > 0){ const wave = .5 + .5*Math.sin((L*18 + (ANIM.on ? ANIM.phase*2*S.animSpeed : 0))*6.2832), f = 1 - ct*.75*Math.pow(1 - wave, 4)*Math.min(1, L*3); L *= f; r *= f; g *= f; b *= f; }
-    let q;
-    if (S.colorMode === 'palette') q = lerpStops(stops, L);
-    else if (S.colorMode === 'mono' || S.colorMode === 'gradient') q = [BG[0] + (FG[0]-BG[0])*L, BG[1] + (FG[1]-BG[1])*L, BG[2] + (FG[2]-BG[2])*L];
-    else q = [r, g, b];
-    d[i] = q[0]; d[i+1] = q[1]; d[i+2] = q[2]; d[i+3] = 255;
+    let r = a[0], g = a[1], b = a[2];
+    if (inv){ r = 255 - r; g = 255 - g; b = 255 - b; }
+    const idx = ((.299*r + .587*g + .114*b)*4.015686 + .5) | 0;
+    if (useLUT){
+      const li = idx*3; d[i] = smLUT[li]; d[i+1] = smLUT[li+1]; d[i+2] = smLUT[li+2]; d[i+3] = 255;
+    } else {
+      const f = smF[idx]; d[i] = r*f; d[i+1] = g*f; d[i+2] = b*f; d[i+3] = 255;
+    }
   }
   smACtx.putImageData(img, 0, 0);
   // 2) on tourne l'image pour que la direction des traînées devienne horizontale
   const D = Math.ceil(Math.hypot(w, h)), ang = S.smearAngle*Math.PI/180;
-  smB.width = D; smB.height = D;
+  fit(smB, smBCtx, D, D);
   smBCtx.fillStyle = '#000'; smBCtx.fillRect(0, 0, D, D);
   smBCtx.save(); smBCtx.translate(D/2, D/2); smBCtx.rotate(-ang); smBCtx.drawImage(smA, -w/2, -h/2); smBCtx.restore();
   const bi = smBCtx.getImageData(0, 0, D, D), bd = bi.data;
   // 3) bandes aléatoires : les pixels lumineux laissent une traînée qui s'estompe
-  const len = Math.max(1, S.smearLen/100*D*.35), thr = S.smearThresh/100, amt = S.smearAmt/100;
+  const len = Math.max(1, S.smearLen/100*D*.35), thrI = (S.smearThresh/100*255000) | 0, amt = S.smearAmt/100;
   const band = Math.max(1, S.cell*sc*k), t0 = isPlayingVideo() ? performance.now()/500 : 0, rng = mulberry32(S.seed);
   const nb = Math.ceil(D/band) + 2, vals = new Float32Array(nb);
   for (let j = 0; j < nb; j++) vals[j] = rng();
+  const cA = Math.abs(Math.cos(ang)), sA = Math.abs(Math.sin(ang));
+  const halfH = Math.ceil((w*sA + h*cA)/2) + 2, halfW = Math.ceil((w*cA + h*sA)/2) + 2;
+  const yMin = Math.max(0, (D >> 1) - halfH), yMax = Math.min(D, (D >> 1) + halfH);
+  const xMin = Math.max(0, (D >> 1) - halfW);
   for (let y = 0; y < D; y++){
     const t = y/band + t0, j = Math.floor(t), f = t - j, fine = .55 + .45*rng();
+    if (y < yMin || y >= yMax) continue;
     let v = vals[j % nb]*(1 - f) + vals[(j + 1) % nb]*f, breath = 1;
     if (ANIM.on){
       const A = S.animAmt/100, ph = ANIM.phase*S.animSpeed;
@@ -1092,10 +1281,10 @@ function smearStyle(o, W, H, sc){
     if (v < 1 - amt) continue;
     const s = (v - (1 - amt))/amt*fine*breath, decay = Math.exp(-1/(len*s + 1));
     let tr = 0, tg = 0, tb = 0;
-    for (let x = 0, i = y*D*4; x < D; x++, i += 4){
+    for (let x = xMin, i = (y*D + xMin)*4; x < D; x++, i += 4){
       const r = bd[i], g = bd[i+1], b = bd[i+2];
       tr *= decay; tg *= decay; tb *= decay;
-      if (lum(r, g, b) > thr){ if (r > tr) tr = r; if (g > tg) tg = g; if (b > tb) tb = b; }
+      if (299*r + 587*g + 114*b > thrI){ if (r > tr) tr = r; if (g > tg) tg = g; if (b > tb) tb = b; }
       if (tr > r) bd[i] = tr; if (tg > g) bd[i+1] = tg; if (tb > b) bd[i+2] = tb;
     }
   }
@@ -1124,9 +1313,10 @@ function lerpStops(stops, t){
   const i = Math.min(stops.length - 2, Math.floor(t)), f = t - i, a = stops[i], b = stops[i+1];
   return [a[0] + (b[0]-a[0])*f, a[1] + (b[1]-a[1])*f, a[2] + (b[2]-a[2])*f];
 }
+let fImg = null, sortKeys = null;
 function filterStyle(o, W, H, sc){
   const w = SRC.width, h = SRC.height;
-  fCan.width = w; fCan.height = h;
+  fit(fCan, fCtx, w, h);
   if (S.style === 'kaleido'){
     const n = 8, cx = w/2, cy = h/2, R = Math.hypot(w, h);
     for (let i = 0; i < n; i++){
@@ -1138,40 +1328,46 @@ function filterStyle(o, W, H, sc){
     for (let i = 0; i < d.length; i += 4){ const a = adj(d[i], d[i+1], d[i+2]); d[i] = a[0]; d[i+1] = a[1]; d[i+2] = a[2]; }
     fCtx.putImageData(img, 0, 0);
   } else {
-    const s = preCtx.getImageData(0, 0, w, h).data, img = fCtx.createImageData(w, h), d = img.data;
+    const s = preCtx.getImageData(0, 0, w, h).data;
+    if (!fImg || fImg.width !== w || fImg.height !== h) fImg = fCtx.createImageData(w, h);
+    const img = fImg, d = img.data;
     const lv = Math.max(2, S.levels), step = 255/(lv - 1), off = Math.max(1, Math.round(S.cell*w/1200));
-    const stops = PAL.slice().sort((p, q) => lum(...p) - lum(...q));
-    for (let p = 0; p < w*h; p++){
+    const st = S.style, inv = S.invert, N = w*h;
+    for (let p = 0; p < N; p++){
       const i = p << 2, a = adj(s[i], s[i+1], s[i+2]);
-      let r = a[0], g = a[1], b = a[2]; if (S.invert){ r = 255 - r; g = 255 - g; b = 255 - b; }
-      const L = lum(r, g, b);
-      let q;
-      switch (S.style){
-        case 'duotone':   q = [BG[0] + (FG[0]-BG[0])*L, BG[1] + (FG[1]-BG[1])*L, BG[2] + (FG[2]-BG[2])*L]; break;
-        case 'gradmap':   q = lerpStops(stops, L); break;
-        case 'posterize': q = [Math.round(r/step)*step, Math.round(g/step)*step, Math.round(b/step)*step]; break;
-        case 'thermal':   q = lerpStops(THERMAL, L); break;
-        default:          q = [r, g, b];
-      }
-      d[i] = q[0]; d[i+1] = q[1]; d[i+2] = q[2]; d[i+3] = 255;
+      let r = a[0], g = a[1], b = a[2]; if (inv){ r = 255 - r; g = 255 - g; b = 255 - b; }
+      const li = (.299*r + .587*g + .114*b + .5) | 0;
+      if (st === 'duotone'){ const q = GRAD_RGB[li]; d[i] = q[0]; d[i+1] = q[1]; d[i+2] = q[2]; }
+      else if (st === 'gradmap'){ const q = GMAP_RGB[li]; d[i] = q[0]; d[i+1] = q[1]; d[i+2] = q[2]; }
+      else if (st === 'thermal'){ const q = THERM_RGB[li]; d[i] = q[0]; d[i+1] = q[1]; d[i+2] = q[2]; }
+      else if (st === 'posterize'){ d[i] = Math.round(r/step)*step; d[i+1] = Math.round(g/step)*step; d[i+2] = Math.round(b/step)*step; }
+      else { d[i] = r; d[i+1] = g; d[i+2] = b; }
+      d[i+3] = 255;
     }
-    if (S.style === 'anaglyph'){
-      const c = d.slice();
-      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
-        const i = (y*w + x) << 2, ir = (y*w + Math.min(w-1, x + off)) << 2, ic = (y*w + Math.max(0, x - off)) << 2;
-        d[i] = c[ir]; d[i+1] = c[ic+1]; d[i+2] = c[ic+2];
-      }
-    }
-    if (S.style === 'pixelsort'){ // tri des pixels lumineux, ligne par ligne
-      const th = S.sortThresh/100, row = [];
+    if (st === 'anaglyph'){
       for (let y = 0; y < h; y++){
-        let x = 0;
+        const row = y*w;
+        for (let x = w - 1; x >= 0; x--) d[(row + x) << 2] = d[(row + Math.min(w-1, x + off)) << 2];
+        for (let x = w - 1; x >= 0; x--){ const i = (row + x) << 2, ic = (row + Math.max(0, x - off)) << 2; d[i+1] = d[ic+1]; d[i+2] = d[ic+2]; }
+      }
+    }
+    if (st === 'pixelsort'){ // tri des pixels lumineux, ligne par ligne (sans allocation d'objets)
+      const thI = (S.sortThresh/100*255000) | 0;
+      if (!sortKeys || sortKeys.length < w) sortKeys = new Float64Array(w);
+      for (let y = 0; y < h; y++){
+        const row = y*w; let x = 0;
         while (x < w){
-          while (x < w && lum(d[(y*w+x)<<2], d[((y*w+x)<<2)+1], d[((y*w+x)<<2)+2]) < th) x++;
-          const x0 = x; row.length = 0;
-          while (x < w){ const i = (y*w + x) << 2, L = lum(d[i], d[i+1], d[i+2]); if (L < th) break; row.push([L, d[i], d[i+1], d[i+2]]); x++; }
-          row.sort((a, b) => a[0] - b[0]);
-          for (let k = 0; k < row.length; k++){ const i = (y*w + x0 + k) << 2; d[i] = row[k][1]; d[i+1] = row[k][2]; d[i+2] = row[k][3]; }
+          while (x < w){ const i = (row + x) << 2; if (299*d[i] + 587*d[i+1] + 114*d[i+2] >= thI) break; x++; }
+          const x0 = x; let n = 0;
+          while (x < w){
+            const i = (row + x) << 2, r = d[i], g = d[i+1], b = d[i+2], L = 299*r + 587*g + 114*b;
+            if (L < thI) break;
+            sortKeys[n++] = L*16777216 + ((r << 16) | (g << 8) | b); x++;
+          }
+          if (n > 1){
+            const sub = sortKeys.subarray(0, n); sub.sort();
+            for (let k = 0; k < n; k++){ const v = sub[k] & 0xffffff, i = (row + x0 + k) << 2; d[i] = (v >> 16) & 255; d[i+1] = (v >> 8) & 255; d[i+2] = v & 255; }
+          }
         }
       }
     }
@@ -1364,7 +1560,8 @@ function glassStyle(o, W, H, sc){
   if (!gl && !glFailed){ try { if (!initGL()) glFailed = true; } catch (e){ glFailed = true; console.warn(e); } }
   if (glFailed){ o.drawImage(SRC, 0, 0, W, H); toast('WebGL indisponible : les styles Verre ne peuvent pas s\'afficher'); return; }
   const w = SRC.width, h = SRC.height;
-  glCan.width = w; glCan.height = h; gl.viewport(0, 0, w, h);
+  if (glCan.width !== w || glCan.height !== h){ glCan.width = w; glCan.height = h; }
+  gl.viewport(0, 0, w, h);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, SRC);
   const t = hex(S.glassTint);
   gl.uniform1i(glU.u_tex, 0); gl.uniform2f(glU.u_res, w, h);
@@ -1391,11 +1588,14 @@ const STYLES = {
 
 /* ---------- Post-traitement ---------- */
 const bCan = document.createElement('canvas'), bCtx = bCan.getContext('2d');
+let rowBuf = null;
+const GRAIN_LUT = new Int16Array(4096);
+{ const r = mulberry32(1337); for (let i = 0; i < 4096; i++) GRAIN_LUT[i] = Math.round((r() - .5)*256); }
 function post(o, W, H, sc, seed){
   if (S.bloom > 0 && o.filter !== undefined){
-    bCan.width = W; bCan.height = H; bCtx.drawImage(o.canvas, 0, 0);
     o.save(); o.globalCompositeOperation = 'lighter'; o.globalAlpha = S.bloom/100*.9;
-    o.filter = `blur(${Math.max(2, S.cell*.8)*sc}px)`; o.drawImage(bCan, 0, 0); o.restore();
+    drawBlurred(o, o.canvas, W, H, Math.max(2, S.cell*.8)*sc);
+    o.restore();
   }
   if (S.overlayAmt > 0){
     o.save(); o.globalCompositeOperation = S.overlayMode; o.globalAlpha = S.overlayAmt/100;
@@ -1403,37 +1603,48 @@ function post(o, W, H, sc, seed){
   }
   if (S.glitch > 0 || S.chroma > 0 || S.grain > 0){
     const img = o.getImageData(0, 0, W, H), d = img.data;
+    if (!rowBuf || rowBuf.length < W*4) rowBuf = new Uint8Array(W*4);
     if (S.glitch > 0){
-      const snap = d.slice(), rng = mulberry32(seed), count = Math.round(S.glitch/6) + 1;
+      const rng = mulberry32(seed), count = Math.round(S.glitch/6) + 1;
       for (let s = 0; s < count; s++){
         const h = Math.max(1, Math.round(rng()*H*.06)), y0 = Math.floor(rng()*(H - h));
         const dx = Math.round((rng() - .5)*W*.15*(S.glitch/100)), ch = Math.floor(rng()*4);
-        for (let y = y0; y < y0 + h; y++){ const row = y*W;
+        for (let y = y0; y < y0 + h; y++){
+          const rowOff = (y*W) << 2;
+          rowBuf.set(d.subarray(rowOff, rowOff + (W << 2)));
           for (let x = 0; x < W; x++){
             let sx = x - dx; if (sx < 0) sx += W; else if (sx >= W) sx -= W;
-            const di = (row + x) << 2, si = (row + sx) << 2;
-            d[di] = snap[si]; d[di+1] = snap[si+1]; d[di+2] = snap[si+2];
-            if (ch < 3) d[di+ch] = Math.min(255, d[di+ch] + 70);
-          } }
+            const di = rowOff + (x << 2), si = sx << 2;
+            d[di] = rowBuf[si]; d[di+1] = rowBuf[si+1]; d[di+2] = rowBuf[si+2];
+            if (ch < 3){ const v = d[di+ch] + 70; d[di+ch] = v > 255 ? 255 : v; }
+          }
+        }
       }
     }
     if (S.chroma > 0){
-      const snap = d.slice(), s = Math.max(1, Math.round(S.chroma/100*10*sc*(ANIM.on ? .5 + 1.2*Math.abs(Math.sin(ANIM.phase*6.2832*S.animSpeed))*S.animAmt/100 : 1)));
-      for (let y = 0; y < H; y++){ const row = y*W;
-        for (let x = 0; x < W; x++){
-          const i = (row + x) << 2;
-          d[i] = snap[(row + Math.min(W-1, x + s)) << 2];
-          d[i+2] = snap[((row + Math.max(0, x - s)) << 2) + 2];
-        } }
+      const s = Math.max(1, Math.round(S.chroma/100*10*sc*(ANIM.on ? .5 + 1.2*Math.abs(Math.sin(ANIM.phase*6.2832*S.animSpeed))*S.animAmt/100 : 1)));
+      for (let y = 0; y < H; y++){
+        const row = y*W;
+        for (let x = 0; x < W; x++) d[(row + x) << 2] = d[(row + Math.min(W-1, x + s)) << 2];
+        for (let x = W - 1; x >= 0; x--) d[((row + x) << 2) + 2] = d[((row + Math.max(0, x - s)) << 2) + 2];
+      }
     }
-    if (S.grain > 0){ const a = S.grain*.9;
-      for (let i = 0; i < d.length; i += 4){ const n = (Math.random() - .5)*a; d[i] += n; d[i+1] += n; d[i+2] += n; } }
+    if (S.grain > 0){
+      const k = Math.round(S.grain*.9);
+      let j = (seed*2654435761) & 4095;
+      for (let i = 0; i < d.length; i += 4){
+        const n = (GRAIN_LUT[j = (j + 1) & 4095]*k) >> 8;
+        d[i] += n; d[i+1] += n; d[i+2] += n;
+      }
+    }
     o.putImageData(img, 0, 0);
   }
   if (S.scanlines > 0){
     o.fillStyle = `rgba(0,0,0,${S.scanlines/100*.8})`;
     const step = Math.max(2, Math.round(3*sc)), th = Math.max(1, Math.round(sc));
-    for (let y = 0; y < H; y += step) o.fillRect(0, y, W, th);
+    o.beginPath();
+    for (let y = 0; y < H; y += step) o.rect(0, y, W, th);
+    o.fill();
   }
   if (S.vignette > 0){
     const g = o.createRadialGradient(W/2, H/2, Math.min(W, H)*.25, W/2, H/2, Math.hypot(W, H)/2);
@@ -1446,12 +1657,14 @@ function post(o, W, H, sc, seed){
 const isPlayingVideo = () => src instanceof HTMLVideoElement && !src.paused;
 // Affiche toujours l'image ENTIÈRE dans la zone disponible, quel que soit son format
 const viewBox = document.querySelector('.canvas-wrap');
+let lastFitW = 0, lastFitH = 0;
 function fitView(){
   const r = viewBox.getBoundingClientRect();
   if (!r.width || !r.height || !view.width || !view.height) return;
   const a = view.width/view.height; let w = r.width, h = w/a;
   if (h > r.height){ h = r.height; w = h*a; }
-  view.style.width = Math.floor(w) + 'px'; view.style.height = Math.floor(h) + 'px';
+  const fw = Math.floor(w), fh = Math.floor(h);
+  if (fw !== lastFitW || fh !== lastFitH){ lastFitW = fw; lastFitH = fh; view.style.width = fw + 'px'; view.style.height = fh + 'px'; }
 }
 new ResizeObserver(fitView).observe(viewBox);
 function render(target = view, scale = 1){
@@ -1468,8 +1681,8 @@ function render(target = view, scale = 1){
   else { o.fillStyle = S.backdrop === 'solid' ? S.bg : '#000'; o.fillRect(0, 0, W, H); }
   if (S.backdrop === 'blur' || S.backdrop === 'original'){
     o.globalAlpha = S.backdropOpacity/100;
-    if (S.backdrop === 'blur') o.filter = `blur(${S.backdropSoft*scale}px)`;
-    o.drawImage(SRC, 0, 0, W, H);
+    if (S.backdrop === 'blur') drawBlurred(o, SRC, W, H, S.backdropSoft*scale);
+    else o.drawImage(SRC, 0, 0, W, H);
   }
   o.restore();
   lastText = null;
@@ -1488,19 +1701,21 @@ function schedule(){
     pending = false;
     const live = (src && src.isLive) || isPlayingVideo() || (typeof ANIM !== 'undefined' && ANIM.on);
     if (!live){
-      // aperçu rapide pendant le réglage : moins de pixels et, pour les styles à caractères/formes,
-      // des cases 2x plus grandes (4x moins à dessiner). Le rendu complet suit dès qu'on s'arrête.
-      const heavy = STYLES[S.style] === textStyle || STYLES[S.style] === shapeStyle || STYLES[S.style] === hexStyle;
+      // aperçu rapide pendant le réglage, suivi du rendu complet dès qu'on relâche
+      const heavy = STYLES[S.style] === shapeStyle || STYLES[S.style] === hexStyle;
       const keep = S.cell; if (heavy) S.cell = Math.min(80, keep*2);
-      try { render(view, Math.min(1, Math.max(.3, 700/S.outWidth))); } finally { S.cell = keep; }
-      clearTimeout(fullT); fullT = setTimeout(() => render(), 170);   // qualité complète dès qu'on s'arrête
+      try { render(view, Math.min(1, Math.max(.35, 700/S.outWidth))); } finally { S.cell = keep; }
+      clearTimeout(fullT); fullT = setTimeout(() => render(), 150);
     } else render();
   });
 }
-let looping = false, comparing = false;
+let looping = false, comparing = false, lastVidTime = -1;
 function loop(){
   if (!(src instanceof HTMLVideoElement)){ looping = false; return; }
-  if (!comparing && !src.paused && src.readyState >= 2) render();
+  if (!comparing && !src.paused && src.readyState >= 2){
+    const ct = src.currentTime;
+    if (ct !== lastVidTime || src.srcObject){ lastVidTime = ct; render(); }
+  }
   requestAnimationFrame(loop);
 }
 
@@ -1560,7 +1775,7 @@ const setPlayIcon = paused => { $('#playBtn').innerHTML = paused ? ICON_PLAY : I
 function setSrc(s){
   if (src && src !== s && src.src && src.src.startsWith('blob:')) URL.revokeObjectURL(src.src);
   if (src instanceof HTMLVideoElement && src !== s) src.pause();
-  src = s;
+  src = s; preKey = ''; sampleKey = ''; lastVidTime = -1;
   const isVid = s instanceof HTMLVideoElement, isFile = isVid && !s.srcObject;
   $('#mCta').hidden = !s.isDemo;
   if (!(s instanceof HTMLCanvasElement)){ CREATE.userSrc = s; if (CREATE.mode !== 'media') setModeChipsOnly('media'); }
@@ -1710,19 +1925,19 @@ function encodeGIF(frames, w, h, delayCs, onProgress){
     }
     B(0x21); B(0xF9); B(4); B(0x04); W16(delayCs); B(0); B(0);   // délai entre images
     B(0x2C); W16(0); W16(0); W16(w); W16(h); B(0);
-    // LZW
+    // LZW (table plate Int32Array : 4× plus rapide qu'une Map)
     const minCode = 8, clear = 256, eoi = 257; B(minCode);
-    let codeSize = 9, next = 258, cur = 0, bits = 0; const dict = new Map(), block = [];
+    let codeSize = 9, next = 258, cur = 0, bits = 0; const dict = new Int32Array(1 << 20).fill(-1), block = [];
     const flushBlock = () => { B(block.length); for (const x of block) B(x); block.length = 0; };
     const emit = code => { cur |= code << bits; bits += codeSize; while (bits >= 8){ block.push(cur & 255); cur >>>= 8; bits -= 8; if (block.length === 255) flushBlock(); } };
     emit(clear);
     let prefix = idx[0];
     for (let i = 1; i < idx.length; i++){
-      const k = idx[i], key = prefix*256 + k, v = dict.get(key);
-      if (v !== undefined){ prefix = v; continue; }
+      const k = idx[i], key = (prefix << 8) | k, v = dict[key];
+      if (v >= 0){ prefix = v; continue; }
       emit(prefix);
-      if (next === 4096){ emit(clear); dict.clear(); next = 258; codeSize = 9; }
-      else { if (next >= (1 << codeSize)) codeSize++; dict.set(key, next++); }
+      if (next === 4096){ emit(clear); dict.fill(-1); next = 258; codeSize = 9; }
+      else { if (next >= (1 << codeSize)) codeSize++; dict[key] = next++; }
       prefix = k;
     }
     emit(prefix); emit(eoi);
@@ -1898,9 +2113,9 @@ function renderThumbs(){
   const step = () => {
     if (job !== thumbJob || !src) return;
     const saved = Object.assign({}, S), t0 = performance.now();
-    while (i < cards.length && performance.now() - t0 < 20){
+    while (i < cards.length && performance.now() - t0 < 12){
       const card = cards[i++], st = card.dataset.style;
-      Object.assign(S, DEFAULTS, {style:st, outWidth:360, cell:Math.max(3, Math.round((REC_CELL[st] || 8)*.6)), exportScale:1, seed:7});
+      Object.assign(S, DEFAULTS, {style:st, outWidth:260, cell:Math.max(3, Math.round((REC_CELL[st] || 8)*.5)), exportScale:1, seed:7});
       if (st === 'duotone'){ S.fg = '#ffd23f'; S.bg = '#3a0ca3'; }
       if (st === 'smear') Object.assign(S, RECIPES['Glitch machine'], {cell:4});
       if (st === 'dotmatrix') Object.assign(S, RECIPES['LED pop'], {cell:4});
@@ -2344,10 +2559,9 @@ const PTR = {on:false, x:.5, y:.5};
 /* ---------- tampon de luminance basse résolution ---------- */
 function lumBuffer(gw, gh){
   const c = document.createElement('canvas'); c.width = gw; c.height = gh;
-  const x = c.getContext('2d'), img = x.createImageData(gw, gh), L = new Float32Array(gw*gh);
+  const x = c.getContext('2d'), img = x.createImageData(gw, gh), u32 = new Uint32Array(img.data.buffer), L = new Float32Array(gw*gh);
   return {c, L, gw, gh, put(){
-    const d = img.data;
-    for (let i = 0; i < L.length; i++){ const v = L[i] <= 0 ? 0 : L[i] >= 1 ? 255 : L[i]*255; d[i*4] = d[i*4+1] = d[i*4+2] = v; d[i*4+3] = 255; }
+    for (let i = 0; i < L.length; i++){ const v = L[i] <= 0 ? 0 : L[i] >= 1 ? 255 : (L[i]*255) | 0; u32[i] = 0xff000000 | (v << 16) | (v << 8) | v; }
     x.putImageData(img, 0, 0);
   }};
 }
